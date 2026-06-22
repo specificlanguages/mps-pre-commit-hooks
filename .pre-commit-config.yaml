@@ -1,0 +1,22 @@
+# Hooks run against this repository itself.
+repos:
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: 06507ab9500d4a9919b5ebd76d9d5b7074f15c1f # frozen: v3.8.4
+    hooks:
+      - id: prettier
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: d2823d321df3af8f878f7ee3414dc94d037145b9 # frozen: v2.1.0
+    hooks:
+      - id: mypy
+        # Check the package as a whole (per pyproject `files`), not file by file,
+        # so relative imports resolve.
+        pass_filenames: false
+        args: [--strict]
+  # Ruff's linter covers the pyflakes (F) rules and more, complementing mypy by reporting unused imports and names,
+  # which mypy --strict does not. The formatter keeps Python style consistent (prettier does not touch .py).
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: c59bba8fb259db0fec2bbb77ad8ba51ea7341b56 # frozen: v0.15.20
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format

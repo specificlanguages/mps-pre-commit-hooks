@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mps-pre-commit-hooks"
+version = "0.1.0"
+description = "Pre-commit hooks for JetBrains MPS projects"
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "MIT" }
+authors = [{ name = "Sergej Koščejev", email = "sergej@koscejev.cz" }]
+keywords = ["mps", "pre-commit", "jetbrains", "lint"]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/specificlanguages/mps-pre-commit-hooks"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+# The hooks live in the mps_pre_commit_hooks package and are invoked with
+# `python -m mps_pre_commit_hooks.check_*` (see .pre-commit-hooks.yaml), so a new
+# hook is just a new module in the package -- no entry point to register here.
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# The hooks target Python >=3.13: they match paths with PurePath.full_match,
+# added in 3.13. Pin the same version for mypy so it resolves stdlib the way the
+# runtime will, regardless of which interpreter happens to run it.
+[tool.mypy]
+files = ["src"]
+strict = true
+python_version = "3.13"
+
+[tool.ruff]
+line-length = 120
+indent-width = 4

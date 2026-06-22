@@ -1,0 +1,122 @@
+# The structural checks (orphans, missing/dangling references) set always_run, so
+# they fire even on a commit that only *deletes* files -- a deletion is exactly
+# what leaves a reference dangling, and pre-commit otherwise skips a hook when no
+# added/modified file matches its `files`. These scan the whole repo and take no
+# filenames.
+#
+# The per-file content checks (zero-sized, naming, path variables) cannot be
+# broken by a deletion, so they stay file-triggered and act only on the files
+# pre-commit passes them, falling back to the whole repo when run standalone or
+# with `--all-files`. Only the fixers set require_serial.
+#
+# Every hook pins language_version: python3.13 -- the checks match paths with
+# PurePath.full_match, added in 3.13 (see pyproject.toml requires-python).
+
+- id: mps-check-orphan-modules
+  name: Check for orphan MPS modules
+  description: >-
+    Report MPS modules (*.msd / *.mpl / *.devkit) present on disk but not registered in any .mps/modules.xml.
+  entry: python -m mps_pre_commit_hooks.check_orphan_modules
+  language: python
+  language_version: python3.13
+  pass_filenames: false
+  always_run: true
+
+- id: mps-check-unbuilt-modules
+  name: Check for unbuilt MPS modules
+  description: >-
+    Report MPS modules (*.msd / *.mpl / *.devkit) that ought to be packaged by a jetbrains.mps.build.mps build script
+    but are not. A no-op for projects without build scripts. Exempt modules that are never packaged with args:
+    [--exclude=GLOB].
+  entry: python -m mps_pre_commit_hooks.check_unbuilt_modules
+  language: python
+  language_version: python3.13
+  pass_filenames: false
+  always_run: true
+
+- id: mps-check-missing-modules
+  name: Check for missing MPS modules
+  description: >-
+    Report .mps/modules.xml entries whose modulePath does not exist on disk. Read-only; use mps-fix-missing-modules to
+    remove them.
+  entry: python -m mps_pre_commit_hooks.check_missing_modules
+  language: python
+  language_version: python3.13
+  pass_filenames: false
+  always_run: true
+
+- id: mps-fix-missing-modules
+  name: Fix missing MPS modules
+  description: >-
+    Remove .mps/modules.xml entries whose modulePath does not exist on disk. Modifies files; review the result.
+  entry: python -m mps_pre_commit_hooks.check_missing_modules --fix
+  language: python
+  language_version: python3.13
+  pass_filenames: false
+  require_serial: true
+  always_run: true
+
+- id: mps-check-orphan-models
+  name: Check for orphan MPS models
+  description: >-
+    Report MPS model files (*.mps / *.mpsr / .model) that live outside any module's declared default model root.
+  entry: python -m mps_pre_commit_hooks.check_orphan_models
+  language: python
+  language_version: python3.13
+  pass_filenames: false
+  always_run: true
+
+- id: mps-check-orphan-mpsr-files
+  name: Check for orphan .mpsr files
+  description: >-
+    Report *.mpsr files whose directory has no .model header file, without which MPS cannot load them.
+  entry: python -m mps_pre_commit_hooks.check_orphan_mpsr_files
+  language: python
+  language_version: python3.13
+  pass_filenames: false
+  always_run: true
+
+- id: mps-check-zero-sized-xmls
+  name: Check for zero-sized MPS XML files
+  description: >-
+    Report tracked MPS XML files that are zero bytes -- model files (*.mps / *.mpsr / .model), module descriptors (*.msd
+    / *.mpl / *.devkit), and .mps/modules.xml / .mps/libraries.xml -- which MPS won't load.
+  entry: python -m mps_pre_commit_hooks.check_zero_sized_xmls
+  language: python
+  language_version: python3.13
+  pass_filenames: true
+  files: '(\.(msd|mpl|devkit|mps|mpsr|model)$)|((^|/)\.mps/(modules|libraries)\.xml$)'
+
+- id: mps-check-module-naming
+  name: Check MPS module naming consistency
+  description: >-
+    Report MPS module descriptors (*.msd / *.mpl / *.devkit) whose name disagrees with the descriptor file name or its
+    containing directory.
+  entry: python -m mps_pre_commit_hooks.check_module_naming
+  language: python
+  language_version: python3.13
+  pass_filenames: true
+  files: '\.(msd|mpl|devkit)$'
+
+- id: mps-check-path-variables
+  name: Check for path variables in MPS .mps XML
+  description: >-
+    Report path variables in **/.mps/libraries.xml and **/.mps/modules.xml, which don't resolve on a fresh checkout.
+    Read-only; use mps-fix-path-variables to rewrite them.
+  entry: python -m mps_pre_commit_hooks.check_path_variables
+  language: python
+  language_version: python3.13
+  pass_filenames: true
+  files: '(^|/)\.mps/(modules|libraries)\.xml$'
+
+- id: mps-fix-path-variables
+  name: Fix path variables in MPS .mps XML
+  description: >-
+    Rewrite path variables in **/.mps/libraries.xml and **/.mps/modules.xml relative to $PROJECT_DIR$, assuming each
+    resolves to the repository root. Modifies files; review the result (see the README caveat).
+  entry: python -m mps_pre_commit_hooks.check_path_variables --fix
+  language: python
+  language_version: python3.13
+  pass_filenames: true
+  require_serial: true
+  files: '(^|/)\.mps/(modules|libraries)\.xml$'

@@ -67,6 +67,9 @@ variable are ignored.
 - id: mps-fix-missing-modules
 ```
 
+These are defined as separate hooks because the `check` hook may run in parallel with other read-only hooks whereas the
+`fix` hook requires serial execution (`require_serial: true`).
+
 ### `mps-check-orphan-models`
 
 Reports model files (`*.mps` / `*.mpsr` / `.model`) living outside every module's declared default model root. A model
@@ -110,6 +113,9 @@ offending paths in place; use it when you want the hook to repair them for you:
 - id: mps-fix-path-variables
 ```
 
+These are defined as separate hooks because the `check` hook may run in parallel with other read-only hooks whereas the
+`fix` hook requires serial execution (`require_serial: true`).
+
 The fix **assumes the macro's value is the Git repository root** and re-expresses the whole path relative to
 `$PROJECT_DIR$`:
 
@@ -125,3 +131,8 @@ ${mbeddr.github.core.home}/code/platform/com.mbeddr.doc
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+## Definitions
+
+Module descriptor
+: 

@@ -113,6 +113,17 @@
   pass_filenames: true
   files: '\.(mps|mpsr)$'
 
+- id: mps-check-banned-model-names
+  name: Check for banned MPS model names
+  description: >-
+    Report MPS model files (*.mps / .model) whose qualified name is one forbidden with args: [--ban=NAME]. Matching is
+    exact, e.g. --ban=main@generator catches a generator model left with MPS' default unqualified name.
+  entry: python -m mps_pre_commit_hooks.check_model_names
+  language: python
+  language_version: python3.13
+  pass_filenames: true
+  files: '\.(mps|model)$'
+
 - id: mps-check-module-naming
   name: Check MPS module naming consistency
   description: >-

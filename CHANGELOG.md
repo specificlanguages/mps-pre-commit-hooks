@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `mps-check-banned-model-names` — reports model files (`*.mps` / `.model`) whose qualified name is one forbidden with
+  `--ban`, matched exactly. Catches, for example, a generator model left with MPS' default unqualified name
+  `main@generator` while allowing a namespaced `foo.bar.main@generator`.
+
 ## [0.2.0] - 2026-07-07
 
 ### Added
@@ -43,5 +51,6 @@ Initial release.
 - `mps-check-module-naming`
 - `mps-check-path-variables` / `mps-fix-path-variables`
 
+[Unreleased]: https://github.com/specificlanguages/mps-pre-commit-hooks/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/specificlanguages/mps-pre-commit-hooks/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/specificlanguages/mps-pre-commit-hooks/releases/tag/v0.1.0

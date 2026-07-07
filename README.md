@@ -25,6 +25,7 @@ repos:
       - id: mps-check-well-formed-xml
       - id: mps-check-language-versions
       - id: mps-check-no-test-info
+      - id: mps-check-banned-model-names
       - id: mps-check-module-naming
       - id: mps-check-path-variables
 ```
@@ -115,6 +116,20 @@ spurious diffs or migration problems once the language is available again.
 
 Reports model files (`*.mps` / `*.mpsr`) whose registry instantiates the `jetbrains.mps.lang.test` **TestInfo** concept.
 The concept is matched by its language and concept id, not its name.
+
+### `mps-check-banned-model-names`
+
+Reports model files (`*.mps` / `.model`) whose qualified name is one you forbid with `--ban`, a repeatable exact match
+against the full model name. The name is read from the model's `ref` header, so a model is reported through its `.mps`
+or `.model` file regardless of persistence format.
+
+The motivating case is a generator model left with MPS' default unqualified name, `main@generator`: banning it catches
+that mistake while leaving a properly namespaced `foo.bar.main@generator` alone.
+
+```yaml
+- id: mps-check-banned-model-names
+  args: [--ban=main@generator]
+```
 
 ### `mps-check-module-naming`
 

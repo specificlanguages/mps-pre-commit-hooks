@@ -15,7 +15,7 @@ Add the repo to your project's `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/specificlanguages/mps-pre-commit-hooks
-    rev: v0.1.0
+    rev: v0.2.0
     hooks:
       - id: mps-check-orphan-modules
       - id: mps-check-unbuilt-modules

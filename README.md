@@ -23,6 +23,7 @@ repos:
       - id: mps-check-orphan-models
       - id: mps-check-orphan-mpsr-files
       - id: mps-check-zero-sized-xmls
+      - id: mps-check-language-versions
       - id: mps-check-module-naming
       - id: mps-check-path-variables
 ```
@@ -87,6 +88,13 @@ Reports tracked MPS XML files that are zero bytes — model files (`*.mps` / `*.
 (`*.msd` / `*.mpl` / `*.devkit` / `*.mpst`), and the per-project `.mps/modules.xml` / `.mps/libraries.xml`. A zero-byte
 file here is almost always the result of a botched save, merge, or checkout; MPS won't load it, silently dropping
 whatever it held.
+
+### `mps-check-language-versions`
+
+Reports model files (`*.mps` / `.model`) whose `<languages>` header uses a language with `version="-1"`. MPS writes `-1`
+when it saves a model while the used language's version is unknown — typically because the language module was not on
+the path at save time. The model still loads, but the missing version is a latent inconsistency that resurfaces as
+spurious diffs or migration problems once the language is available again.
 
 ### `mps-check-module-naming`
 

@@ -87,6 +87,17 @@
   pass_filenames: true
   files: '(\.(msd|mpl|devkit|mps|mpsr|model)$)|((^|/)\.mps/(modules|libraries)\.xml$)'
 
+- id: mps-check-language-versions
+  name: Check for MPS languages used with version -1
+  description: >-
+    Report MPS model files (*.mps / .model) whose <languages> header uses a language with version="-1", which MPS writes
+    when the used language's version was unknown at save time.
+  entry: python -m mps_pre_commit_hooks.check_language_versions
+  language: python
+  language_version: python3.13
+  pass_filenames: true
+  files: '\.(mps|model)$'
+
 - id: mps-check-module-naming
   name: Check MPS module naming consistency
   description: >-

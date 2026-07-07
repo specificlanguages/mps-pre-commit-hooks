@@ -31,6 +31,7 @@ from ._common import (
     matches,
     module_name,
     nearest_ancestor_in,
+    parse_xml,
     repo_root,
 )
 
@@ -78,7 +79,9 @@ def built_module_names(models: list[Path]) -> set[str]:
     """Names of all modules packaged by any build script."""
     names: set[str] = set()
     for model in models:
-        root = ET.parse(model).getroot()
+        root = parse_xml(model)
+        if root is None:
+            continue
         name_role = registry_index(root, NAMED_CONCEPT, "name")
         module_concepts = {registry_index(root, c) for c in BUILT_MODULE_CONCEPTS}
         module_concepts.discard(None)
@@ -120,9 +123,12 @@ def main(argv: list[str] | None = None) -> int:
 
     root = repo_root()
 
-    modules = git_ls_files(*MODULE_GLOBS)
-    names = {m: module_name(ET.parse(m).getroot()) for m in modules}
-    module_homes: dict[PurePath, str] = {m.parent: names[m] for m in modules}
+    names: dict[Path, str] = {}
+    for m in git_ls_files(*MODULE_GLOBS):
+        descriptor = parse_xml(m)
+        if descriptor is not None:
+            names[m] = module_name(descriptor)
+    module_homes: dict[PurePath, str] = {m.parent: name for m, name in names.items()}
 
     build_model_paths = build_models(root)
     if not build_model_paths:
@@ -147,8 +153,7 @@ def main(argv: list[str] | None = None) -> int:
         return matches(path.relative_to(root).as_posix(), *excludes, subtree=True)
 
     failed = False
-    for module in modules:
-        name = names[module]
+    for module, name in names.items():
         if excluded(module) or name in build_script_modules or name in built:
             continue
         rel = module.relative_to(root).as_posix()

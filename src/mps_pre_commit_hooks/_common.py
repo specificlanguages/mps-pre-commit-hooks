@@ -125,6 +125,18 @@ def selected_files(passed: list[str], *globs: AnchoredGlob) -> list[Path]:
     return git_ls_files(*globs)
 
 
+def parse_xml(path: Path) -> ET.Element | None:
+    """The root element of `path`, or None if it is not well-formed XML.
+
+    Malformed MPS XML (empty, truncated, left with conflict markers) is reported
+    on its own by the well-formed-xml check; every other hook skips a file it cannot
+    parse instead of crashing the whole run on one bad file."""
+    try:
+        return ET.parse(path).getroot()
+    except ET.ParseError:
+        return None
+
+
 def module_name(descriptor_root: ET.Element) -> str:
     # Solutions and devkits carry "name"; languages carry "namespace".
     return descriptor_root.get("name") or descriptor_root.get("namespace") or ""

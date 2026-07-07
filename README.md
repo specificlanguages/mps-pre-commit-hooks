@@ -22,7 +22,7 @@ repos:
       - id: mps-check-missing-modules
       - id: mps-check-orphan-models
       - id: mps-check-orphan-mpsr-files
-      - id: mps-check-zero-sized-xmls
+      - id: mps-check-well-formed-xml
       - id: mps-check-language-versions
       - id: mps-check-no-test-info
       - id: mps-check-module-naming
@@ -34,7 +34,7 @@ Then `pre-commit install` (or just `prek install`). The hooks work the same unde
 Each hook is independent — enable only the ones you want. They all scan the whole repository (not just the staged
 files), since most of what they check are cross-file relationships. The structural checks (orphans, and missing/dangling
 references) run on **every** commit, because the problem they catch is often introduced by a commit that only _deletes_
-a file — which pre-commit would otherwise skip them for. The per-file content checks (zero-sized, naming, path
+a file — which pre-commit would otherwise skip them for. The per-file content checks (well-formed-xml, naming, path
 variables) run only when a relevant file is added or changed.
 
 ## Hooks
@@ -83,12 +83,26 @@ update the owning module, or a stray copy.
 Reports `*.mpsr` files whose directory has no `.model` header file alongside them. The header describes the model;
 without it MPS cannot load the roots, so the model is effectively lost.
 
-### `mps-check-zero-sized-xmls`
+### `mps-check-well-formed-xml`
 
-Reports tracked MPS XML files that are zero bytes — model files (`*.mps` / `*.mpsr` / `.model`), module descriptors
-(`*.msd` / `*.mpl` / `*.devkit` / `*.mpst`), and the per-project `.mps/modules.xml` / `.mps/libraries.xml`. A zero-byte
-file here is almost always the result of a botched save, merge, or checkout; MPS won't load it, silently dropping
-whatever it held.
+Reports MPS XML files that do not parse as well-formed XML — model files (`*.mps` / `*.mpsr` / `.model`), module
+descriptors (`*.msd` / `*.mpl` / `*.devkit` / `*.mpst`), and the per-project `.mps/modules.xml` / `.mps/libraries.xml`.
+Besides the zero-byte file left by a botched save, merge, or checkout, this catches a truncated file or one still
+carrying Git conflict markers — none of which MPS can load.
+
+This is a thin wrapper over the [`check-xml`](https://github.com/pre-commit/pre-commit-hooks) hook from
+`pre-commit/pre-commit-hooks`, pre-pointed at MPS's XML file extensions so it needs no configuration. If you would
+rather wire up `check-xml` yourself — or already depend on that repo — enable it directly instead and give it the same
+file pattern:
+
+```yaml
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v6.0.0
+  hooks:
+    - id: check-xml
+      files: '(\.(msd|mpl|devkit|mps|mpsr|model)$)|((^|/)\.mps/(modules|libraries)\.xml$)'
+      types: [file] # override the hook's default types: [xml], which excludes MPS's extensions
+```
 
 ### `mps-check-language-versions`
 

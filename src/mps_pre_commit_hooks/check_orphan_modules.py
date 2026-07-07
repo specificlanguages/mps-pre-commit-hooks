@@ -11,14 +11,13 @@
 # a build script is mps-check-unbuilt-modules; the reverse direction (modules.xml
 # entries pointing at a missing descriptor) is mps-check-missing-modules; models
 # outside a model root, mps-check-orphan-models; *.mpsr without a .model header,
-# mps-check-orphan-roots; zero-sized XML files, mps-check-zero-sized-xmls; module
+# mps-check-orphan-roots; malformed XML files, mps-check-well-formed-xml; module
 # naming, mps-check-module-naming; path variables, mps-check-path-variables.
 
 from __future__ import annotations
 
 import os
 import sys
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from ._common import (
@@ -26,6 +25,7 @@ from ._common import (
     MODULES_XML_GLOBS,
     git_ls_files,
     module_name,
+    parse_xml,
     repo_root,
 )
 
@@ -35,7 +35,9 @@ def referenced_modules() -> set[Path]:
     referenced: set[Path] = set()
     for modules_xml in git_ls_files(*MODULES_XML_GLOBS):
         project_dir = modules_xml.parent.parent
-        root = ET.parse(modules_xml).getroot()
+        root = parse_xml(modules_xml)
+        if root is None:
+            continue
         for module_path in root.iter("modulePath"):
             raw = module_path.get("path", "")
             # A modulePath is either $PROJECT_DIR$-relative, addressed through a
@@ -61,7 +63,10 @@ def main() -> int:
     for module in git_ls_files(*MODULE_GLOBS):
         if module in referenced:
             continue
-        name = module_name(ET.parse(module).getroot())
+        descriptor = parse_xml(module)
+        if descriptor is None:
+            continue
+        name = module_name(descriptor)
         rel = module.relative_to(root).as_posix()
         print(f"{rel}: module '{name}' not registered in any modules.xml")
         failed = True

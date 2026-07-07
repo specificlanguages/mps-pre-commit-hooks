@@ -17,10 +17,9 @@ from __future__ import annotations
 import argparse
 import re
 import sys
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from ._common import MODULES_XML_GLOBS, git_ls_files, repo_root
+from ._common import MODULES_XML_GLOBS, git_ls_files, parse_xml, repo_root
 
 # A <modulePath> element with its path attribute captured. Used to drop the
 # matching line on --fix; MPS writes one entry per line.
@@ -30,7 +29,9 @@ MODULE_PATH = re.compile(r'<modulePath\b[^>]*\bpath="([^"]*)"')
 def dangling_paths(modules_xml: Path) -> list[str]:
     """Raw modulePath values in this file pointing to missing files."""
     project_dir = modules_xml.parent.parent
-    root = ET.parse(modules_xml).getroot()
+    root = parse_xml(modules_xml)
+    if root is None:
+        return []
     dangling = []
     for module_path in root.iter("modulePath"):
         raw = module_path.get("path", "")

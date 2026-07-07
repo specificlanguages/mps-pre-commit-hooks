@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import os
 import sys
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from ._common import (
@@ -19,6 +18,7 @@ from ._common import (
     MODULE_GLOBS,
     git_ls_files,
     nearest_ancestor_in,
+    parse_xml,
     repo_root,
 )
 
@@ -28,7 +28,9 @@ def model_roots(root: Path) -> set[Path]:
     roots: set[Path] = set()
     for module in git_ls_files(*MODULE_GLOBS):
         module_dir = module.parent
-        descriptor = ET.parse(module).getroot()
+        descriptor = parse_xml(module)
+        if descriptor is None:
+            continue
         for model_root in descriptor.iter("modelRoot"):
             if model_root.get("type") != "default":
                 continue

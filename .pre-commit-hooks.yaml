@@ -4,7 +4,7 @@
 # added/modified file matches its `files`. These scan the whole repo and take no
 # filenames.
 #
-# The per-file content checks (zero-sized, naming, path variables) cannot be
+# The per-file content checks (well-formed-xml, naming, path variables) cannot be
 # broken by a deletion, so they stay file-triggered and act only on the files
 # pre-commit passes them, falling back to the whole repo when run standalone or
 # with `--all-files`. Only the fixers set require_serial.
@@ -76,12 +76,16 @@
   pass_filenames: false
   always_run: true
 
-- id: mps-check-zero-sized-xmls
-  name: Check for zero-sized MPS XML files
+# A thin wrapper over the check-xml hook from pre-commit/pre-commit-hooks: the
+# same entry point, pre-pointed at MPS's XML files so it needs no configuration.
+# check-xml catches an empty file from a botched save, a truncated file, or one
+# left with Git conflict markers -- none of which MPS can load.
+- id: mps-check-well-formed-xml
+  name: Check that MPS XML files are well-formed
   description: >-
-    Report tracked MPS XML files that are zero bytes -- model files (*.mps / *.mpsr / .model), module descriptors (*.msd
-    / *.mpl / *.devkit), and .mps/modules.xml / .mps/libraries.xml -- which MPS won't load.
-  entry: python -m mps_pre_commit_hooks.check_zero_sized_xmls
+    Report MPS XML files that do not parse as well-formed XML -- model files (*.mps / *.mpsr / .model), module
+    descriptors (*.msd / *.mpl / *.devkit), and .mps/modules.xml / .mps/libraries.xml.
+  entry: check-xml
   language: python
   language_version: python3.13
   pass_filenames: true

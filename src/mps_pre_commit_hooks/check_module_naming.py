@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import argparse
 import sys
-import xml.etree.ElementTree as ET
 
 from ._common import (
     FloatingGlob,
@@ -29,6 +28,7 @@ from ._common import (
     anchor,
     matches,
     module_name,
+    parse_xml,
     repo_root,
     selected_files,
 )
@@ -72,7 +72,10 @@ def main(argv: list[str]) -> int:
         if matches(rel, *excludes, subtree=True):
             continue
 
-        name = module_name(ET.parse(module).getroot())
+        descriptor = parse_xml(module)
+        if descriptor is None:
+            continue
+        name = module_name(descriptor)
 
         suggestions = []
         if module.parent.name != name:

@@ -102,6 +102,21 @@ def test_look_alike_name_with_different_id_passes(repo):
     assert result.stdout == ""
 
 
+def test_malformed_file_is_skipped_not_crashed(repo):
+    # An unrelated malformed model elsewhere must not crash the run; the real
+    # finding is still reported. (Malformed XML is mps-check-well-formed-xml's job.)
+    write(os.path.join(repo, "broken/broken.mps"), "")
+    write(
+        os.path.join(repo, "dirty/dirty.mps"),
+        model(language(TEST_LANGUAGE_ID, "jetbrains.mps.lang.test", TEST_INFO)),
+    )
+    add(repo)
+    result = run_check(repo)
+    assert result.returncode == 1
+    assert result.stderr == "", result.stderr
+    assert "dirty/dirty.mps" in result.stdout
+
+
 def test_passed_file_scopes_the_check(repo):
     write(
         os.path.join(repo, "clean/clean.mps"),

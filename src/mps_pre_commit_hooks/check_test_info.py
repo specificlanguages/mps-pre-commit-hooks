@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET
 
 from ._common import (
     AnchoredGlob,
+    parse_xml,
     repo_root,
     selected_files,
 )
@@ -58,7 +59,8 @@ def main(argv: list[str] | None = None) -> int:
 
     failed = False
     for model in selected_files(args.files, *MODEL_GLOBS):
-        if not has_test_info(ET.parse(model).getroot()):
+        root_el = parse_xml(model)
+        if root_el is None or not has_test_info(root_el):
             continue
         rel = model.relative_to(root).as_posix()
         print(f"{rel}: contains a banned TestInfo node")

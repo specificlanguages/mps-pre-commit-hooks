@@ -24,6 +24,7 @@ repos:
       - id: mps-check-orphan-mpsr-files
       - id: mps-check-zero-sized-xmls
       - id: mps-check-language-versions
+      - id: mps-check-no-test-info
       - id: mps-check-module-naming
       - id: mps-check-path-variables
 ```
@@ -95,6 +96,11 @@ Reports model files (`*.mps` / `.model`) whose `<languages>` header uses a langu
 when it saves a model while the used language's version is unknown — typically because the language module was not on
 the path at save time. The model still loads, but the missing version is a latent inconsistency that resurfaces as
 spurious diffs or migration problems once the language is available again.
+
+### `mps-check-no-test-info`
+
+Reports model files (`*.mps` / `*.mpsr`) whose registry instantiates the `jetbrains.mps.lang.test` **TestInfo** concept.
+The concept is matched by its language and concept id, not its name.
 
 ### `mps-check-module-naming`
 

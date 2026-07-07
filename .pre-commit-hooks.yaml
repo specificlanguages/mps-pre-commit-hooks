@@ -98,6 +98,17 @@
   pass_filenames: true
   files: '\.(mps|model)$'
 
+- id: mps-check-no-test-info
+  name: Check for banned MPS TestInfo nodes
+  description: >-
+    Report MPS model files (*.mps / *.mpsr) whose registry instantiates the jetbrains.mps.lang.test TestInfo concept,
+    matched by language and concept id, not name.
+  entry: python -m mps_pre_commit_hooks.check_test_info
+  language: python
+  language_version: python3.13
+  pass_filenames: true
+  files: '\.(mps|mpsr)$'
+
 - id: mps-check-module-naming
   name: Check MPS module naming consistency
   description: >-

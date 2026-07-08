@@ -166,6 +166,15 @@ reported. A model in the per-root format is a directory of the same name holding
 to the directory the `.model` sits in. A `@stereotype` (e.g. `@tests`) is part of the name and so of the file name —
 `foo` and `foo@tests` are different models, kept in different files.
 
+The truncated short name is accepted by default. To require **solution** models to carry the full qualified name, pass
+`--no-short-names`. Language models keep the short form regardless — the terse per-aspect file name (`behavior.mps` for
+`com.example.lang.behavior`) is the idiomatic language layout.
+
+```yaml
+- id: mps-check-model-naming
+  args: [--no-short-names]
+```
+
 For a model in a **language's embedded generator**, only the name is checked: it must be namespaced under the owning
 language (a model of language `foo.bar` must be named `foo.bar…`). This catches a template model left over from another
 language, or one left with a non-unique name like `main@generator`. The file layout of generator models is not checked —

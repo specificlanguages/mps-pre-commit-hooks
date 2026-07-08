@@ -139,7 +139,9 @@
   name: Check MPS model naming consistency
   description: >-
     Report MPS model files (*.mps / .model) whose file name disagrees with the model's qualified name, given the name of
-    the module (or embedded generator) whose model root holds them.
+    the module (or embedded generator) whose model root holds them. The module-truncated short name (baz.quux.mps for
+    model foo.bar.baz.quux in module foo.bar) is accepted by default; require the full name in solutions with args:
+    [--no-short-names] (language models keep the short form).
   entry: python -m mps_pre_commit_hooks.check_model_naming
   language: python
   language_version: python3.13

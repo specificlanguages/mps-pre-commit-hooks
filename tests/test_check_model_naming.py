@@ -144,6 +144,50 @@ def test_misnamed_per_root_model_is_reported(repo):
     assert "foo.bar/models/wrong/.model" in result.stdout
 
 
+def test_per_root_report_uses_folder_name(repo):
+    # The report names the model by its folder, without the /.model header noise.
+    solution(repo)
+    write(os.path.join(repo, "foo.bar/models/wrong/.model"), model("foo.bar.baz.quux"))
+    add(repo)
+    result = run_check(repo)
+    assert result.returncode == 1
+    assert "foo.bar.baz.quux/.model" not in result.stdout
+    assert "wrong/.model" not in result.stdout.replace("foo.bar/models/wrong/.model", "")
+    assert "foo.bar.baz.quux" in result.stdout
+
+
+# -- short (module-truncated) names in solutions can be disallowed with --no-short-names --
+
+
+def test_solution_short_name_accepted_by_default_but_rejected_when_disabled(repo):
+    solution(repo)
+    write(os.path.join(repo, "foo.bar/models/baz.quux.mps"), model("foo.bar.baz.quux"))
+    add(repo)
+    assert run_check(repo).returncode == 0
+    result = run_check(repo, "--no-short-names")
+    assert result.returncode == 1
+    assert "foo.bar/models/baz.quux.mps" in result.stdout
+
+
+def test_solution_full_name_still_accepted_with_no_short_names(repo):
+    solution(repo)
+    write(os.path.join(repo, "foo.bar/models/foo.bar.baz.quux.mps"), model("foo.bar.baz.quux"))
+    add(repo)
+    result = run_check(repo, "--no-short-names")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout == ""
+
+
+def test_language_short_name_kept_even_with_no_short_names(repo):
+    # --no-short-names tightens solutions only; a language's short name stays valid.
+    language(repo)
+    write(os.path.join(repo, "NewLanguage/models/behavior.mps"), model("NewLanguage.behavior"))
+    add(repo)
+    result = run_check(repo, "--no-short-names")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout == ""
+
+
 # -- a language's own models are checked by file layout, like a solution's --
 
 

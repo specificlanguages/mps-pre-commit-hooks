@@ -31,9 +31,11 @@
 
 from __future__ import annotations
 
+import argparse
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import NamedTuple
 
 from ._common import (
     MODULE_GLOBS,
@@ -54,10 +56,16 @@ from ._common import (
 MODEL_GLOBS = [AnchoredGlob(f"**/*{ext}") for ext in (".mps", ".model")]
 
 
-# A source root's owner: whether it belongs to an embedded generator, and the
-# namespace a model under it is measured against -- the module's own name for the
-# module's roots, the owning language's namespace for a generator's roots.
-Owner = tuple[bool, str]
+class Owner(NamedTuple):
+    """A source root's owner. `is_generator` marks a root of an embedded generator;
+    `is_solution` marks one whose module is a solution (rather than a language or
+    devkit). `namespace` is what a model under the root is measured against -- the
+    module's own name for the module's roots, the owning language's namespace for a
+    generator's roots."""
+
+    is_generator: bool
+    is_solution: bool
+    namespace: str
 
 
 def owned_model_roots(root: Path) -> dict[Path, Owner]:
@@ -69,12 +77,15 @@ def owned_model_roots(root: Path) -> dict[Path, Owner]:
             continue
         module_dir = module.parent
         namespace = module_name(descriptor)
+        is_solution = descriptor.tag == "solution"
         # The module's own models, named after the module. A language's embedded
         # generators each declare their own roots; a model there is measured
         # against the language namespace, so record them with the same one.
-        _record(owners, descriptor.findall("models/modelRoot"), (False, namespace), module_dir, root)
+        _record(owners, descriptor.findall("models/modelRoot"), Owner(False, is_solution, namespace), module_dir, root)
         for generator in descriptor.findall("generators/generator"):
-            _record(owners, generator.findall("models/modelRoot"), (True, namespace), module_dir, root)
+            _record(
+                owners, generator.findall("models/modelRoot"), Owner(True, is_solution, namespace), module_dir, root
+            )
     return owners
 
 
@@ -101,13 +112,14 @@ def under_namespace(name: str, namespace: str) -> bool:
     return bool(namespace) and (base == namespace or base.startswith(namespace + "."))
 
 
-def acceptable_names(name: str, namespace: str) -> list[str]:
-    """The names a model may be stored under: its full name, and -- when the name
-    is inside the owning module's namespace -- the name with that whole namespace
-    truncated away. A `@stereotype` is part of the name and so of the file name:
-    `foo` and `foo@tests` are different models and belong in different files."""
+def acceptable_names(name: str, namespace: str, allow_short: bool = True) -> list[str]:
+    """The names a model may be stored under: its full name, and -- when short names
+    are allowed and the name is inside the owning module's namespace -- the name with
+    that whole namespace truncated away. A `@stereotype` is part of the name and so of
+    the file name: `foo` and `foo@tests` are different models and belong in different
+    files."""
     names = [name]
-    if namespace and name.startswith(namespace + "."):
+    if allow_short and namespace and name.startswith(namespace + "."):
         names.append(name[len(namespace) + 1 :])
     return names
 
@@ -148,12 +160,37 @@ def stored_name(model: Path, source_root: Path) -> str:
     return relative.relative_to(source_root).as_posix().replace("/", ".")
 
 
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="mps-check-model-naming",
+        description="Check that each MPS model's file name agrees with its qualified name.",
+    )
+    parser.add_argument(
+        "--no-short-names",
+        dest="allow_short_names",
+        action="store_false",
+        help="For solution models, require the full qualified name as the file name; "
+        "reject the short form with the owning module's namespace truncated away "
+        "(e.g. baz.quux.mps for model foo.bar.baz.quux in solution foo.bar). "
+        "Language models keep the short form either way. Off by default, so the "
+        "short form is accepted everywhere.",
+    )
+    parser.add_argument(
+        "files",
+        nargs="*",
+        help="Model files to check; defaults to every tracked one.",
+    )
+    return parser.parse_args(argv)
+
+
 def main(argv: list[str]) -> int:
+    args = parse_args(argv)
+
     root = repo_root()
     owners = owned_model_roots(root)
 
     failed = False
-    for model in selected_files(argv, *MODEL_GLOBS):
+    for model in selected_files(args.files, *MODEL_GLOBS):
         # .mps/ holds project configuration, not models; skip it as the other checks do.
         if ".mps" in model.parts:
             continue
@@ -168,33 +205,38 @@ def main(argv: list[str]) -> int:
         if name is None:
             continue
 
-        is_generator, namespace = owners[Path(source_root)]
+        owner = owners[Path(source_root)]
         rel = model.relative_to(root).as_posix()
 
-        if is_generator:
-            if under_namespace(name, namespace):
+        if owner.is_generator:
+            if under_namespace(name, owner.namespace):
                 continue
             failed = True
             print(
                 aligned(
                     f"{rel}: generator model is not named under its language",
-                    [("model name", name), ("language", namespace)],
+                    [("model name", name), ("language", owner.namespace)],
                 )
             )
         else:
-            acceptable = acceptable_names(name, namespace)
-            if stored_name(model, Path(source_root)) in acceptable:
+            # --no-short-names tightens solutions only; languages keep the short form.
+            allow_short = args.allow_short_names or not owner.is_solution
+            acceptable = acceptable_names(name, owner.namespace, allow_short)
+            current = stored_name(model, Path(source_root))
+            if current in acceptable:
                 continue
             failed = True
-            suffix = "/.model" if model.name == ".model" else ".mps"
+            # A per-root model is stored as a directory holding a `.model` header, so
+            # report it by that directory's name -- the trailing `/.model` is noise.
+            suffix = "" if model.name == ".model" else ".mps"
             expected = expected_files(acceptable, suffix)
             print(
                 aligned(
-                    f"{rel}: file name does not match model name",
+                    f"{rel}: path does not match model name",
                     [
                         ("model name", name),
-                        ("current file", f"{stored_name(model, Path(source_root))}{suffix}"),
-                        ("expected file", f"{expected}\n(a '.' may be a directory separator)"),
+                        ("current path", f"{current}{suffix}"),
+                        ("expected path", f"{expected}\n(a '.' may be a directory separator)"),
                     ],
                 )
             )

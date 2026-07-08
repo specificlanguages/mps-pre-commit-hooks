@@ -112,6 +112,33 @@ def acceptable_names(name: str, namespace: str) -> list[str]:
     return names
 
 
+def aligned(header: str, rows: list[tuple[str, str]]) -> str:
+    """A header line followed by indented `label: value` rows whose values are
+    aligned in a column, so names to be compared line up under one another and a
+    mismatch is easy to spot by eye. A value may span several lines; continuation
+    lines are indented to the value column."""
+    width = max(len(label) for label, _ in rows)
+    indent = width + 6  # 4 leading spaces + label + ':' + 1 space
+    lines = [header]
+    for label, value in rows:
+        first, *rest = value.split("\n")
+        lines.append(f"    {label + ':':<{width + 1}} {first}")
+        lines += [" " * indent + cont for cont in rest]
+    return "\n".join(lines)
+
+
+def expected_files(acceptable: list[str], suffix: str) -> str:
+    """The acceptable file names as a multi-line value: the full name first, then
+    each truncated alternative on its own line pushed right so its tail lines up
+    under the full name -- the truncation is then visible as the missing prefix."""
+    full, *alternatives = [f"{name}{suffix}" for name in acceptable]
+    lines = [full]
+    for alt in alternatives:
+        pad = max(0, len(full) - len(alt) - len("or "))
+        lines.append(f"{' ' * pad}or {alt}")
+    return "\n".join(lines)
+
+
 def stored_name(model: Path, source_root: Path) -> str:
     """The dot-separated name a model is stored under within its source root: the
     path below the source root with directory separators read as dots. For a per-root
@@ -148,18 +175,28 @@ def main(argv: list[str]) -> int:
             if under_namespace(name, namespace):
                 continue
             failed = True
-            print(f"{rel}: generator model '{name}' is not named under its language '{namespace}'")
+            print(
+                aligned(
+                    f"{rel}: generator model is not named under its language",
+                    [("model name", name), ("language", namespace)],
+                )
+            )
         else:
             acceptable = acceptable_names(name, namespace)
             if stored_name(model, Path(source_root)) in acceptable:
                 continue
             failed = True
             suffix = "/.model" if model.name == ".model" else ".mps"
-            expected = " or ".join(f"'{n}{suffix}'" for n in acceptable)
+            expected = expected_files(acceptable, suffix)
             print(
-                f"{rel}: file name does not match model name '{name}'; "
-                f"under its source root it should be {expected} "
-                f"(a '.' may instead be a directory separator)"
+                aligned(
+                    f"{rel}: file name does not match model name",
+                    [
+                        ("model name", name),
+                        ("current file", f"{stored_name(model, Path(source_root))}{suffix}"),
+                        ("expected file", f"{expected}\n(a '.' may be a directory separator)"),
+                    ],
+                )
             )
 
     return 1 if failed else 0

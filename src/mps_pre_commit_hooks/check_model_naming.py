@@ -6,9 +6,9 @@
 # or the project becomes confusing to navigate. This reports two kinds of mismatch,
 # depending on where a tracked model file (*.mps / .model) lives:
 #
-# 1. A model in a solution's or language's own default model root must be stored
-#    under a file name that matches its qualified name. Relative to that root, a
-#    model `foo.bar.baz.quux` in a module `foo.bar` may be stored as:
+# 1. A model stored in a source root of a solution's or language's own default model
+#    root must have a file name that matches its qualified name. Relative to that
+#    source root, a model `foo.bar.baz.quux` in a module `foo.bar` may be stored as:
 #
 #      foo.bar.baz.quux.mps        the full name
 #      baz.quux.mps                the full name with the module name truncated
@@ -54,14 +54,14 @@ from ._common import (
 MODEL_GLOBS = [AnchoredGlob(f"**/*{ext}") for ext in (".mps", ".model")]
 
 
-# A model root's owner: whether it belongs to an embedded generator, and the
-# namespace a model in it is measured against -- the module's own name for a
-# module root, the owning language's namespace for a generator root.
+# A source root's owner: whether it belongs to an embedded generator, and the
+# namespace a model under it is measured against -- the module's own name for the
+# module's roots, the owning language's namespace for a generator's roots.
 Owner = tuple[bool, str]
 
 
 def owned_model_roots(root: Path) -> dict[Path, Owner]:
-    """Map each default model-root directory to its owner."""
+    """Map each source-root directory of a default model root to its owner."""
     owners: dict[Path, Owner] = {}
     for module in git_ls_files(*MODULE_GLOBS):
         descriptor = parse_xml(module)
@@ -112,13 +112,13 @@ def acceptable_names(name: str, namespace: str) -> list[str]:
     return names
 
 
-def stored_name(model: Path, model_root: Path) -> str:
-    """The dot-separated name a model is stored under within its model root: the
-    path below the root with directory separators read as dots. For a per-root
+def stored_name(model: Path, source_root: Path) -> str:
+    """The dot-separated name a model is stored under within its source root: the
+    path below the source root with directory separators read as dots. For a per-root
     model this is the directory the `.model` header sits in, for any other its file
     name without the extension."""
     relative = model.parent if model.name == ".model" else model.with_suffix("")
-    return relative.relative_to(model_root).as_posix().replace("/", ".")
+    return relative.relative_to(source_root).as_posix().replace("/", ".")
 
 
 def main(argv: list[str]) -> int:
@@ -130,9 +130,9 @@ def main(argv: list[str]) -> int:
         # .mps/ holds project configuration, not models; skip it as the other checks do.
         if ".mps" in model.parts:
             continue
-        model_root = nearest_ancestor_in(model, owners)
-        # A model outside every model root is mps-check-orphan-models' concern.
-        if model_root is None:
+        source_root = nearest_ancestor_in(model, owners)
+        # A model outside every source root is mps-check-orphan-models' concern.
+        if source_root is None:
             continue
         header = parse_xml(model)
         if header is None:
@@ -141,7 +141,7 @@ def main(argv: list[str]) -> int:
         if name is None:
             continue
 
-        is_generator, namespace = owners[Path(model_root)]
+        is_generator, namespace = owners[Path(source_root)]
         rel = model.relative_to(root).as_posix()
 
         if is_generator:
@@ -151,14 +151,14 @@ def main(argv: list[str]) -> int:
             print(f"{rel}: generator model '{name}' is not named under its language '{namespace}'")
         else:
             acceptable = acceptable_names(name, namespace)
-            if stored_name(model, Path(model_root)) in acceptable:
+            if stored_name(model, Path(source_root)) in acceptable:
                 continue
             failed = True
             suffix = "/.model" if model.name == ".model" else ".mps"
             expected = " or ".join(f"'{n}{suffix}'" for n in acceptable)
             print(
                 f"{rel}: file name does not match model name '{name}'; "
-                f"under its model root it should be {expected} "
+                f"under its source root it should be {expected} "
                 f"(a '.' may instead be a directory separator)"
             )
 

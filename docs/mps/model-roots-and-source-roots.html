@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MPS model roots and source roots</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --fg: #1b1f24;
+        --muted: #5b6570;
+        --border: #e1e5ea;
+        --code-bg: #f4f6f8;
+        --accent: #2563b3;
+        --accent-soft: #e8f0fb;
+        --ok: #2e7d46;
+        --table-head: #f0f3f6;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #14171a;
+          --fg: #d7dde3;
+          --muted: #8b95a1;
+          --border: #2a2f35;
+          --code-bg: #1c2126;
+          --accent: #6ab0ff;
+          --accent-soft: #172233;
+          --ok: #5bc47f;
+          --table-head: #1c2126;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font:
+          16px/1.62 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          Helvetica,
+          Arial,
+          sans-serif;
+      }
+      .wrap {
+        max-width: 60rem;
+        margin: 0 auto;
+        padding: 3rem 1.5rem 6rem;
+      }
+      h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+        margin: 0 0 0.3rem;
+        letter-spacing: -0.01em;
+      }
+      .lede {
+        color: var(--muted);
+        font-size: 1.05rem;
+        margin: 0 0 2.5rem;
+      }
+      h2 {
+        font-size: 1.35rem;
+        margin: 3rem 0 1rem;
+        padding-bottom: 0.35rem;
+        border-bottom: 1px solid var(--border);
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.08rem;
+        margin: 2rem 0 0.6rem;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 0.88em;
+        background: var(--code-bg);
+        padding: 0.12em 0.38em;
+        border-radius: 4px;
+      }
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.1rem;
+        overflow-x: auto;
+        margin: 0 0 1.2rem;
+      }
+      pre code {
+        background: none;
+        padding: 0;
+        font-size: 0.85rem;
+        line-height: 1.55;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 0 0 1.3rem;
+        font-size: 0.92rem;
+      }
+      .scroll {
+        overflow-x: auto;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.55rem 0.7rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      th {
+        background: var(--table-head);
+        font-weight: 600;
+      }
+      td code,
+      th code {
+        white-space: nowrap;
+      }
+      dl {
+        margin: 0 0 1.3rem;
+      }
+      dt {
+        font-weight: 600;
+        margin: 1rem 0 0.2rem;
+      }
+      dd {
+        margin: 0;
+        color: var(--fg);
+      }
+      .callout {
+        background: var(--accent-soft);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        border-radius: 6px;
+        padding: 0.9rem 1.1rem;
+        margin: 0 0 1.3rem;
+      }
+      .callout p:last-child {
+        margin-bottom: 0;
+      }
+      .src {
+        font-size: 0.82rem;
+        color: var(--muted);
+        margin: 0.2rem 0 1.4rem;
+      }
+      .src a {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.95em;
+      }
+      figure {
+        margin: 0 0 1.5rem;
+      }
+      figcaption {
+        color: var(--muted);
+        font-size: 0.82rem;
+        margin-top: 0.5rem;
+        text-align: center;
+      }
+      .diagram {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      ul,
+      ol {
+        margin: 0 0 1.1rem;
+        padding-left: 1.4rem;
+      }
+      li {
+        margin: 0.25rem 0;
+      }
+      .tag {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.1rem 0.45rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        vertical-align: middle;
+      }
+      .footer {
+        margin-top: 4rem;
+        padding-top: 1.2rem;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      .diagram text {
+        fill: var(--fg);
+      }
+      .diagram .dm {
+        fill: var(--muted);
+      }
+      .diagram rect {
+        fill: var(--code-bg);
+        stroke: var(--border);
+      }
+      .diagram .accent {
+        stroke: var(--accent);
+      }
+      .diagram line,
+      .diagram path {
+        stroke: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>MPS model roots and source roots</h1>
+      <p class="lede">
+        How a module descriptor tells MPS where to find its models: model roots, their content directory, and their
+        source roots.
+      </p>
+
+      <p>
+        Source references point at JetBrains MPS commit
+        <code
+          ><a href="https://github.com/JetBrains/MPS/tree/c4689bddb9300043a71a0582b9d23d4de519f625">c4689bd</a></code
+        >
+        (post-2025.3 <code>master</code>). Line numbers are pinned to that commit.
+      </p>
+
+      <h2>The three terms</h2>
+
+      <dl>
+        <dt>Module</dt>
+        <dd>
+          A solution, language, devkit, or generator. Its descriptor file (<code>*.msd</code>, <code>*.mpl</code>,
+          <code>*.devkit</code>, <code>*.mpst</code>) lists the module's models inside a
+          <code>&lt;models&gt;</code> element.
+        </dd>
+
+        <dt>Model root</dt>
+        <dd>
+          An entry under <code>&lt;models&gt;</code> that describes one group of related models and where they come
+          from. A model root has a <code>type</code> (for example <code>default</code>), an optional
+          <strong>content directory</strong>, and a list of <strong>source roots</strong>.
+        </dd>
+
+        <dt>Content directory</dt>
+        <dd>
+          A single base path, written as the <code>contentPath</code> attribute. Source roots that are given as relative
+          paths are resolved against it.
+        </dd>
+
+        <dt>Source root</dt>
+        <dd>
+          A directory that MPS reads models from. MPS walks each source root recursively and loads every model file it
+          finds; one source root can hold many models.
+        </dd>
+      </dl>
+
+      <figure>
+        <svg
+          class="diagram"
+          viewBox="0 0 720 320"
+          role="img"
+          aria-label="A module owns model roots; a model root has a content directory and several source roots; MPS reads models from each source root."
+        >
+          <rect x="20" y="130" width="120" height="60" rx="8" class="accent" />
+          <text x="80" y="158" text-anchor="middle" font-size="14" font-weight="700">module</text>
+          <text x="80" y="176" text-anchor="middle" font-size="11" class="dm">*.msd / *.mpl</text>
+
+          <line x1="140" y1="160" x2="210" y2="160" marker-end="url(#arrow)" />
+          <text x="175" y="150" text-anchor="middle" font-size="10" class="dm">lists</text>
+
+          <rect x="210" y="105" width="160" height="110" rx="8" />
+          <text x="290" y="132" text-anchor="middle" font-size="14" font-weight="700">model root</text>
+          <text x="290" y="150" text-anchor="middle" font-size="11" class="dm">type = "default"</text>
+          <text x="290" y="178" text-anchor="middle" font-size="11">content directory</text>
+          <text x="290" y="194" text-anchor="middle" font-size="11" class="dm">contentPath="${module}"</text>
+
+          <line x1="370" y1="160" x2="440" y2="160" marker-end="url(#arrow)" />
+          <text x="405" y="150" text-anchor="middle" font-size="10" class="dm">source roots</text>
+
+          <rect x="440" y="52" width="150" height="52" rx="8" />
+          <text x="515" y="75" text-anchor="middle" font-size="13" font-weight="700">source root</text>
+          <text x="515" y="92" text-anchor="middle" font-size="10" class="dm">location="models"</text>
+
+          <rect x="440" y="146" width="150" height="52" rx="8" />
+          <text x="515" y="169" text-anchor="middle" font-size="13" font-weight="700">source root</text>
+          <text x="515" y="186" text-anchor="middle" font-size="10" class="dm">location="solutions"</text>
+
+          <rect x="440" y="240" width="150" height="52" rx="8" />
+          <text x="515" y="263" text-anchor="middle" font-size="13" font-weight="700">source root</text>
+          <text x="515" y="280" text-anchor="middle" font-size="10" class="dm">path="${module}/gen"</text>
+
+          <line x1="590" y1="78" x2="650" y2="78" marker-end="url(#arrow)" />
+          <line x1="590" y1="172" x2="650" y2="172" marker-end="url(#arrow)" />
+          <text x="660" y="72" font-size="11">*.mps</text>
+          <text x="660" y="90" font-size="11" class="dm">read from</text>
+          <text x="660" y="166" font-size="11">*.mps</text>
+          <text x="660" y="184" font-size="11" class="dm">recursively</text>
+
+          <defs>
+            <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+              <path d="M0,0 L7,3 L0,6" fill="none" />
+            </marker>
+          </defs>
+        </svg>
+        <figcaption>
+          A module lists model roots; a model root has a content directory and several source roots; MPS reads models
+          from each source root.
+        </figcaption>
+      </figure>
+
+      <div class="callout">
+        <p>
+          In one line: a module's models live in directories called <strong>source roots</strong>; a
+          <strong>model root</strong> groups source roots under a <code>type</code> and an optional base directory
+          (<code>contentPath</code>).
+        </p>
+      </div>
+
+      <div class="src">
+        Interfaces:
+        <a
+          href="https://github.com/JetBrains/MPS/blob/c4689bddb9300043a71a0582b9d23d4de519f625/core/openapi/source/org/jetbrains/mps/openapi/persistence/ModelRoot.java"
+          >ModelRoot.java</a
+        >,
+        <a
+          href="https://github.com/JetBrains/MPS/blob/c4689bddb9300043a71a0582b9d23d4de519f625/core/kernel/source/jetbrains/mps/extapi/persistence/SourceRoot.java"
+          >SourceRoot.java</a
+        >
+      </div>
+
+      <h2>How a source root gives its path</h2>
+
+      <p>A source root's path is written in one of two ways:</p>
+      <ul>
+        <li>
+          <strong>Relative</strong> &mdash; a <code>location</code> attribute, resolved against the model root's
+          <code>contentPath</code>. The value <code>location="."</code> refers to the content directory itself.
+        </li>
+        <li>
+          <strong>Absolute</strong> &mdash; a <code>path</code> attribute, taken as written (after macros such as
+          <code>${module}</code> and <code>${mps_home}</code> are expanded).
+        </li>
+      </ul>
+
+      <p>
+        Each source root also has a <strong>kind</strong>. The <code>SOURCES</code> kind supplies models. The
+        <code>EXCLUDED</code> kind marks a subtree to leave out of scanning.
+      </p>
+
+      <p>
+        When MPS loads a <code>default</code> model root, it takes the source roots of the <code>SOURCES</code> kind and
+        reads models from each one. For example,
+        <a
+          href="https://github.com/JetBrains/MPS/blob/c4689bddb9300043a71a0582b9d23d4de519f625/core/kernel/source/jetbrains/mps/persistence/DefaultModelRoot.java#L140-L158"
+          ><code>DefaultModelRoot.loadModels()</code></a
+        >
+        iterates <code>getSourceRoots(SOURCES)</code> and collects the models under each.
+      </p>
+
+      <div class="src">
+        kinds:
+        <a
+          href="https://github.com/JetBrains/MPS/blob/c4689bddb9300043a71a0582b9d23d4de519f625/core/kernel/source/jetbrains/mps/extapi/persistence/SourceRootKinds.java"
+          >SourceRootKinds.java</a
+        >
+      </div>
+
+      <h2>How it looks in a module descriptor</h2>
+
+      <p>
+        A model root persists inside <code>&lt;models&gt;</code>. The XML follows a fixed shape (<a
+          href="https://github.com/JetBrains/MPS/blob/c4689bddb9300043a71a0582b9d23d4de519f625/core/kernel/source/jetbrains/mps/extapi/persistence/FileBasedModelRoot.java#L196-L235"
+          ><code>FileBasedModelRoot.save()</code></a
+        >):
+      </p>
+
+      <ul>
+        <li>
+          <code>&lt;modelRoot&gt;</code> carries the <code>type</code> and, when a content directory is set, the
+          <code>contentPath</code>.
+        </li>
+        <li>
+          Each <code>SOURCES</code> source root is a <code>&lt;sourceRoot&gt;</code> child; each
+          <code>EXCLUDED</code> one is an <code>&lt;excluded&gt;</code> child.
+        </li>
+        <li>A source root child carries <code>location</code> (relative) or <code>path</code> (absolute).</li>
+      </ul>
+
+      <h3>Relative source root</h3>
+      <pre><code>&lt;modelRoot contentPath="${module}" type="default"&gt;
+  &lt;sourceRoot location="models" /&gt;
+&lt;/modelRoot&gt;</code></pre>
+      <p class="muted">
+        Models are read from <code>${module}/models</code>. This is the common form: across MPS-extensions, mbeddr.core
+        and iets3.opensource, <code>location=</code> appears about 1131 times to <code>path=</code>'s 29.
+      </p>
+
+      <h3>Absolute source root</h3>
+      <pre><code>&lt;modelRoot type="java_classes"&gt;
+  &lt;sourceRoot path="${mps_home}/lib/mps-behavior-runtime.jar" /&gt;
+&lt;/modelRoot&gt;</code></pre>
+      <p class="muted">The source root gives a full macro path and the model root needs no <code>contentPath</code>.</p>
+
+      <h3>Content directory shared by several source roots</h3>
+      <pre><code>&lt;modelRoot contentPath="${mps_home}/lib" type="java_classes"&gt;
+  &lt;sourceRoot location="util-8.jar" /&gt;
+  &lt;PackageScope skip-private="false"&gt;
+    &lt;include prefix="org.jetbrains.org.objectweb.asm." /&gt;
+  &lt;/PackageScope&gt;
+&lt;/modelRoot&gt;</code></pre>
+      <p class="muted">
+        Each <code>location</code> resolves against the shared <code>contentPath</code>
+        (<code>${mps_home}/lib/util-8.jar</code>). Some model root types add child elements of their own, such as
+        <code>PackageScope</code>.
+      </p>
+
+      <div class="src">
+        examples:
+        <a
+          href="https://github.com/JetBrains/MPS/blob/c4689bddb9300043a71a0582b9d23d4de519f625/core/aspects/behavior/behavior-runtime/jetbrains.mps.lang.behavior.runtime.msd#L5-L7"
+          >behavior-runtime.msd</a
+        >,
+        <a
+          href="https://github.com/JetBrains/MPS/blob/c4689bddb9300043a71a0582b9d23d4de519f625/core/java-stub/jetbrains.mps.java.stub.msd#L8-L13"
+          >java.stub.msd</a
+        >
+      </div>
+
+      <h2>Model root types</h2>
+
+      <p>Each model root has a <code>type</code> string. These are the types in the MPS tree:</p>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th><code>type</code></th>
+              <th>Class</th>
+              <th>Models come from</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>default</code></td>
+              <td>
+                <a
+                  href="https://github.com/JetBrains/MPS/blob/c4689bddb9300043a71a0582b9d23d4de519f625/core/kernel/source/jetbrains/mps/persistence/DefaultModelRoot.java"
+                  >DefaultModelRoot</a
+                >
+              </td>
+              <td>
+                model files you author, stored under the source roots
+                (<code>.mps</code>&nbsp;/&nbsp;<code>.mpsr</code>&nbsp;/&nbsp;<code>.model</code>)
+              </td>
+            </tr>
+            <tr>
+              <td><code>java_classes</code></td>
+              <td>
+                <a
+                  href="https://github.com/JetBrains/MPS/blob/c4689bddb9300043a71a0582b9d23d4de519f625/core/java-stub/source_gen/jetbrains/mps/persistence/java/library/JavaClassStubsModelRoot.java"
+                  >JavaClassStubsModelRoot</a
+                >
+              </td>
+              <td>
+                compiled Java in the <code>.jar</code>&nbsp;/&nbsp;<code>.class</code> files under the source roots
+              </td>
+            </tr>
+            <tr>
+              <td><code>jdk</code></td>
+              <td>
+                <a
+                  href="https://github.com/JetBrains/MPS/blob/c4689bddb9300043a71a0582b9d23d4de519f625/core/java-stub/source_gen/jetbrains/mps/persistence/java/library/JDKStubsModelRoot.java"
+                  >JDKStubsModelRoot</a
+                >
+              </td>
+              <td>the configured project JDK <span class="tag">uses no source roots</span></td>
+            </tr>
+            <tr>
+              <td><code>java_source_stubs</code></td>
+              <td>JavaSourceStubModelRoot</td>
+              <td>Java source files under the source roots</td>
+            </tr>
+            <tr>
+              <td><code>kotlin_jvm</code>, <code>kotlin_common</code></td>
+              <td>Kotlin plugin roots</td>
+              <td>Kotlin artifacts under the source roots</td>
+            </tr>
+            <tr>
+              <td>others</td>
+              <td>PSI Java stub (IdeaPlugin), <code>property_files_stubs</code> (sample), &hellip;</td>
+              <td>plugin- or sample-specific sources</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        A <code>default</code> model root holds the models you write and MPS saves to disk. The other types build their
+        models in memory from compiled code or source files each time the module loads; those generated models appear in
+        other models as <code>&lt;import&gt;</code> references. The <code>jdk</code> type takes its input from the
+        project JDK setting, so it configures no source roots.
+      </p>
+
+      <div class="src">
+        type constants:
+        <a
+          href="https://github.com/JetBrains/MPS/blob/c4689bddb9300043a71a0582b9d23d4de519f625/core/kernel/source/jetbrains/mps/persistence/PersistenceRegistry.java#L68-L70"
+          >PersistenceRegistry.java</a
+        >
+        (<code>DEFAULT_MODEL_ROOT</code>, <code>JAVA_CLASSES_ROOT</code>, <code>JDK_CLASSES_ROOT</code>)
+      </div>
+
+      <p class="muted">
+        What the real projects contain (git-tracked descriptors): MPS itself &mdash; <code>default</code> ~1684,
+        <code>java_classes</code> ~100, and a handful of
+        <code>kotlin_jvm</code
+        >&nbsp;/&nbsp;<code>jdk</code>&nbsp;/&nbsp;<code>kotlin_common</code>&nbsp;/&nbsp;<code>java_source_stubs</code>;
+        MPS-extensions, mbeddr.core and iets3.opensource &mdash; <code>default</code> and <code>java_classes</code>.
+      </p>
+
+      <h2>What this means for the hooks</h2>
+      <ul>
+        <li>
+          These hooks act on tracked model files, which live in <code>default</code> model roots, so they read
+          <code>type="default"</code> model roots and collect the directories of their <code>SOURCES</code> source
+          roots.
+        </li>
+        <li>
+          To get those directories, resolve each <code>&lt;sourceRoot location=…&gt;</code> against
+          <code>contentPath</code> and take each <code>&lt;sourceRoot path=…&gt;</code> as written, expanding
+          <code>${module}</code> to the descriptor's directory. A <code>${mps_home}</code> path points at an MPS
+          installation outside the repository, so the hooks leave it as written and it matches no tracked model.
+        </li>
+        <li>
+          A model belongs to a module when it sits under one of that module's source roots. A model under no source root
+          is what <code>mps-check-orphan-models</code> reports.
+        </li>
+        <li>
+          <code>mps-check-model-naming</code> measures a model's file name against its qualified name relative to the
+          source root the model sits under.
+        </li>
+      </ul>
+
+      <div class="footer">
+        <p>
+          Agent-oriented summary: <a href="model-roots-and-source-roots.md">model-roots-and-source-roots.md</a>.
+          Model-id and model-reference grammar: <a href="model-ids-and-references.md">model-ids-and-references.md</a>.
+        </p>
+        <p>
+          Projects on GitHub: <a href="https://github.com/JetBrains/MPS">JetBrains/MPS</a>,
+          <a href="https://github.com/JetBrains/MPS-extensions">MPS-extensions</a>,
+          <a href="https://github.com/mbeddr/mbeddr.core">mbeddr.core</a>,
+          <a href="https://github.com/IETS3/iets3.opensource">iets3.opensource</a>.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -53,5 +53,5 @@ def test_model_outside_root_is_reported(repo):
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
     result = run_check(repo)
     assert result.returncode == 1
-    assert "outside any module's model root" in result.stdout
+    assert "outside any default model root's source roots" in result.stdout
     assert "stray.mps" in result.stdout

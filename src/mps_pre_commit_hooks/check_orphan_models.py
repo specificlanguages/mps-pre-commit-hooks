@@ -2,10 +2,9 @@
 #
 # Model-root membership check.
 #
-# Every MPS model file (*.mps / *.mpsr / .model) must live inside a directory
-# declared as a default model root by some module descriptor. A model outside any
-# model root is invisible to MPS -- present on disk but never loaded -- usually
-# the result of a move that didn't update the owning module, or a stray copy.
+# Every model file (*.mps / *.mpsr / .model) must live under a source root of some
+# default model root; one that does not is invisible to MPS -- present on disk but
+# never loaded -- usually a move that didn't update the owning module, or a stray copy.
 
 from __future__ import annotations
 
@@ -24,7 +23,7 @@ from ._common import (
 
 
 def model_roots(root: Path) -> set[Path]:
-    """Directories declared as default model roots across all module files.
+    """The source-root directories of every default model root across all module files.
 
     `iter` reaches every modelRoot, including those a language's embedded
     generators declare -- membership is all this check needs, so it does not
@@ -50,7 +49,7 @@ def main() -> int:
         if ".mps" in model.parts:
             continue
         if nearest_ancestor_in(model, roots) is None:
-            print(f"{model.relative_to(root).as_posix()}: model file outside any module's model root")
+            print(f"{model.relative_to(root).as_posix()}: model file outside any default model root's source roots")
             failed = True
 
     return 1 if failed else 0

@@ -4,7 +4,7 @@ Reusable [pre-commit](https://pre-commit.com) / [prek](https://github.com/j178/p
 [JetBrains MPS](https://www.jetbrains.com/mps/) projects.
 
 MPS keeps a lot of its project structure in files that are easy to leave in an inconsistent state by hand or by a bad
-merge: a module added on disk but never registered in `.mps/modules.xml`, a model dropped outside every model root, a
+merge: a module added on disk but never registered in `.mps/modules.xml`, a model dropped outside every source root, a
 descriptor renamed but not its folder. MPS silently ignores most of these, so the mistake only surfaces much later.
 These hooks catch them at commit time.
 
@@ -76,9 +76,9 @@ These are defined as separate hooks because the `check` hook may run in parallel
 
 ### `mps-check-orphan-models`
 
-Reports model files (`*.mps` / `*.mpsr` / `.model`) living outside every module's declared default model root. A model
-outside any root is invisible to MPS — present on disk but never loaded — usually the result of a move that didn't
-update the owning module, or a stray copy.
+Reports model files (`*.mps` / `*.mpsr` / `.model`) living outside every source root of every declared default model
+root. A model that falls under none of them is invisible to MPS. Such models may appear in the repository during merge
+conflict resolution.
 
 ### `mps-check-orphan-mpsr-files`
 
@@ -151,7 +151,7 @@ Checks that model files (`*.mps` / `.model`) are named consistently with the mod
 depends on where the model lives.
 
 For a model in a **solution's or language's own model root**, the file name must match the model name. Relative to the
-default model root it lives in, a model named `foo.bar.baz.quux` in a module `foo.bar` may be stored as:
+source root it lives under, a model named `foo.bar.baz.quux` in a module `foo.bar` may be stored as:
 
 ```
 foo.bar.baz.quux.mps          the full name
@@ -172,7 +172,7 @@ language, or one left with a non-unique name like `main@generator`. The file lay
 the `generator/template` folder makes it unpredictable, and the generator's own declared namespace is unreliable (legacy
 `#id` forms), so the language namespace is what a generator model is measured against.
 
-A model that lies outside every declared model root is left to `mps-check-orphan-models`.
+A model that lies outside every declared source root is left to `mps-check-orphan-models`.
 
 ### `mps-check-path-variables` / `mps-fix-path-variables`
 

@@ -168,15 +168,17 @@ def model_name(model_root: ET.Element) -> str | None:
 
 
 def default_model_root_dirs(model_root: ET.Element, module_dir: Path, repo_root: Path) -> Iterator[Path]:
-    """The directories a single ``<modelRoot type="default">`` declares, as absolute,
-    normalized paths. Yields nothing for a model root of any other type.
+    """The source-root directories a single ``<modelRoot type="default">`` declares,
+    as absolute, normalized paths. Yields nothing for a model root of any other type.
 
-    ``${module}`` stands for the descriptor's own directory; a ``sourceRoot`` is given
-    either as a ``location`` relative to the root's ``contentPath`` or, in an older
-    format, as a ``path`` that spells out the ``${module}`` macro itself. A directory
-    with neither macro is taken relative to ``repo_root``; an absolute one keeps
-    itself. normpath collapses '..' lexically so the result matches the path git
-    reports for a model that lives under the root."""
+    A ``sourceRoot`` gives its path as a ``location`` relative to the root's
+    ``contentPath`` or as an absolute ``path``. Only ``${module}`` is expanded (to the
+    descriptor's own directory); ``${mps_home}`` and other macros are left as-is, since
+    they point outside the repository and so match no tracked model. A path with neither
+    macro is taken relative to ``repo_root``; an absolute one keeps itself. normpath
+    collapses '..' lexically so the result matches the path git reports for a model under
+    the root. Only ``sourceRoot`` (the SOURCES kind) is read; ``excluded`` roots are
+    ignored."""
     if model_root.get("type") != "default":
         return
     content_path = model_root.get("contentPath", "").replace("${module}", str(module_dir))

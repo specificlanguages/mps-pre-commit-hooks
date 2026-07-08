@@ -156,6 +156,43 @@ def test_per_root_report_uses_folder_name(repo):
     assert "foo.bar.baz.quux" in result.stdout
 
 
+# -- the suggested expected path --
+
+
+def test_report_suggests_short_name_when_current_is_short(repo):
+    # The current file uses a single-segment name, so the smaller fix is the short name.
+    solution(repo)
+    write(os.path.join(repo, "foo.bar/models/wrongname.mps"), model("foo.bar.baz.quux"))
+    add(repo)
+    result = run_check(repo)
+    assert result.returncode == 1
+    assert "expected path: baz.quux.mps" in result.stdout
+    assert "current path:  wrongname.mps" in result.stdout
+    assert "foo.bar/models/wrongname.mps: path does not match model name foo.bar.baz.quux" in result.stdout
+
+
+def test_report_suggests_full_name_when_current_is_long(repo):
+    # A near-full current name (only foo. dropped) is closest to the full name.
+    solution(repo)
+    write(os.path.join(repo, "foo.bar/models/bar.baz.quux.mps"), model("foo.bar.baz.quux"))
+    add(repo)
+    result = run_check(repo)
+    assert result.returncode == 1
+    assert "expected path: foo.bar.baz.quux.mps" in result.stdout
+
+
+def test_report_preserves_directory_layout(repo):
+    # A model kept in a subdirectory is reported with real slashes, and the suggestion
+    # keeps the directory that still agrees -- only the file is renamed.
+    solution(repo)
+    write(os.path.join(repo, "foo.bar/models/sub/wrong.mps"), model("foo.bar.sub.thing"))
+    add(repo)
+    result = run_check(repo)
+    assert result.returncode == 1
+    assert "current path:  sub/wrong.mps" in result.stdout
+    assert "expected path: sub/thing.mps" in result.stdout
+
+
 # -- short (module-truncated) names in solutions can be disallowed with --no-short-names --
 
 

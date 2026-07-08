@@ -147,8 +147,8 @@ Modules can be excluded with `--exclude`, a repeatable glob written like a `.git
 
 ### `mps-check-model-naming`
 
-Checks that model files (`*.mps` / `.model`) are named consistently with the model's qualified name. What it checks
-depends on where the model lives.
+Checks that model files (`*.mps` / `.model`) are named consistently with the model's name. What it checks depends on
+where the model lives.
 
 For a model in a **solution's or language's own model root**, the file name must match the model name. Relative to the
 source root it lives under, a model named `foo.bar.baz.quux` in a module `foo.bar` may be stored as:
@@ -166,7 +166,7 @@ reported. A model in the per-root format is a directory of the same name holding
 to the directory the `.model` sits in. A `@stereotype` (e.g. `@tests`) is part of the name and so of the file name —
 `foo` and `foo@tests` are different models, kept in different files.
 
-The truncated short name is accepted by default. To require **solution** models to carry the full qualified name, pass
+The truncated short name is accepted by default. To require **solution** models to carry the full name, pass
 `--no-short-names`. Language models keep the short form regardless — the terse per-aspect file name (`behavior.mps` for
 `com.example.lang.behavior`) is the idiomatic language layout.
 

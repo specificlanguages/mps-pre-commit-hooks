@@ -118,7 +118,7 @@
   description: >-
     Report MPS model files (*.mps / .model) whose qualified name is one forbidden with args: [--ban=NAME]. Matching is
     exact, e.g. --ban=main@generator catches a generator model left with MPS' default unqualified name.
-  entry: python -m mps_pre_commit_hooks.check_model_names
+  entry: python -m mps_pre_commit_hooks.check_banned_model_names
   language: python
   language_version: python3.13
   pass_filenames: true
@@ -134,6 +134,17 @@
   language_version: python3.13
   pass_filenames: true
   files: '\.(msd|mpl|devkit)$'
+
+- id: mps-check-model-naming
+  name: Check MPS model naming consistency
+  description: >-
+    Report MPS model files (*.mps / .model) whose file name disagrees with the model's qualified name, given the name of
+    the module (or embedded generator) whose model root holds them.
+  entry: python -m mps_pre_commit_hooks.check_model_naming
+  language: python
+  language_version: python3.13
+  pass_filenames: true
+  files: '\.(mps|model)$'
 
 - id: mps-check-path-variables
   name: Check for path variables in MPS .mps XML

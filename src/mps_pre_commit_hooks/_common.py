@@ -8,8 +8,10 @@
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import xml.etree.ElementTree as ET
+from collections.abc import Iterator
 from pathlib import Path, PurePath, PurePosixPath
 from typing import Container, NewType
 
@@ -140,6 +142,54 @@ def parse_xml(path: Path) -> ET.Element | None:
 def module_name(descriptor_root: ET.Element) -> str:
     # Solutions and devkits carry "name"; languages carry "namespace".
     return descriptor_root.get("name") or descriptor_root.get("namespace") or ""
+
+
+# A model's name lives in the root <model> element's `ref`, whose form is
+# `[<moduleId>/]<modelId>(<presentation>)`. This captures the parenthesized
+# presentation part; model_name() extracts the name from it. .mps and .model
+# headers carry it.
+_REF_NAME = re.compile(r"[^(]*\((.*)\)")
+
+
+def model_name(model_root: ET.Element) -> str | None:
+    """The model's qualified name, read from the root <model> element's `ref`, or
+    None when the attribute is missing or not of the `<kind>:<uuid>(<name>)` form."""
+    match = _REF_NAME.fullmatch(model_root.get("ref", ""))
+    if match is None:
+        return None
+    # The parenthesized presentation part is `([<moduleName>/]<modelName>)`: it
+    # gains a module-name qualifier whenever the ref is persisted with a module
+    # part -- generator template models (qualified by their generator module) and
+    # module-private ids such as checkpoint `i:` models do, an ordinary
+    # globally-unique model does not. Keep the part after the '/'; a bare name has
+    # none, so this leaves it untouched. (A model name never contains an unescaped
+    # '/' -- it would be percent-escaped -- so the split is unambiguous.)
+    return match.group(1).rsplit("/", 1)[-1]
+
+
+def default_model_root_dirs(model_root: ET.Element, module_dir: Path, repo_root: Path) -> Iterator[Path]:
+    """The directories a single ``<modelRoot type="default">`` declares, as absolute,
+    normalized paths. Yields nothing for a model root of any other type.
+
+    ``${module}`` stands for the descriptor's own directory; a ``sourceRoot`` is given
+    either as a ``location`` relative to the root's ``contentPath`` or, in an older
+    format, as a ``path`` that spells out the ``${module}`` macro itself. A directory
+    with neither macro is taken relative to ``repo_root``; an absolute one keeps
+    itself. normpath collapses '..' lexically so the result matches the path git
+    reports for a model that lives under the root."""
+    if model_root.get("type") != "default":
+        return
+    content_path = model_root.get("contentPath", "").replace("${module}", str(module_dir))
+    for source_root in model_root.findall("sourceRoot"):
+        location = source_root.get("location")
+        path = source_root.get("path")
+        if location is not None:
+            directory = Path(content_path, location)
+        elif path is not None:
+            directory = Path(path.replace("${module}", str(module_dir)))
+        else:
+            continue
+        yield Path(os.path.normpath(repo_root / directory))
 
 
 def nearest_ancestor_in(path: PurePath, directories: Container[PurePath]) -> PurePath | None:

@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `mps-check-banned-model-names` — reports model files (`*.mps` / `.model`) whose qualified name is one forbidden with
   `--ban`, matched exactly. Catches, for example, a generator model left with MPS' default unqualified name
   `main@generator` while allowing a namespaced `foo.bar.main@generator`.
+- `mps-check-model-naming` — reports model files (`*.mps` / `.model`) named inconsistently with the model's qualified
+  name. A model in a solution's or language's own model root must be stored under a file name matching its name (full,
+  or with the whole module name truncated, dot- or directory-separated); a model in an embedded generator must be
+  namespaced under its language, catching leftovers from another language and non-unique names like `main@generator`.
 
 ## [0.2.0] - 2026-07-07
 

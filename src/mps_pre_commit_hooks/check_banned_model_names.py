@@ -10,31 +10,21 @@
 from __future__ import annotations
 
 import argparse
-import re
 import sys
-import xml.etree.ElementTree as ET
 
 from ._common import (
     AnchoredGlob,
+    model_name,
     parse_xml,
     repo_root,
     selected_files,
 )
 
-# A model's name lives in the root <model> element's `ref`, of the form
-# `<kind>:<uuid>(<name>)`. .mps and .model headers carry it; a per-root .mpsr
-# repeats its model's ref, so scanning it too would report the same model twice --
-# leave it out and every model is reported once, through its .mps or .model.
+# A model's name lives in the root <model> element's `ref`. .mps and .model headers
+# carry it; a per-root .mpsr repeats its model's ref, so scanning it too would report
+# the same model twice -- leave it out and every model is reported once, through its
+# .mps or .model.
 MODEL_GLOBS = [AnchoredGlob(f"**/*{ext}") for ext in (".mps", ".model")]
-
-REF_NAME = re.compile(r"[^(]*\((.*)\)")
-
-
-def model_name(model_root: ET.Element) -> str | None:
-    """The model's qualified name, read from the root <model> element's `ref`, or
-    None when the attribute is missing or not of the `<kind>:<uuid>(<name>)` form."""
-    match = REF_NAME.fullmatch(model_root.get("ref", ""))
-    return match.group(1) if match else None
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:

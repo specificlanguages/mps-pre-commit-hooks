@@ -21,7 +21,7 @@ def model(name):
 
 
 def run_check(repo, *args):
-    return run_module("check_model_names", repo, *args)
+    return run_module("check_banned_model_names", repo, *args)
 
 
 @pytest.fixture

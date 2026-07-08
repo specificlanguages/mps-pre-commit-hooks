@@ -27,6 +27,7 @@ repos:
       - id: mps-check-no-test-info
       - id: mps-check-banned-model-names
       - id: mps-check-module-naming
+      - id: mps-check-model-naming
       - id: mps-check-path-variables
 ```
 
@@ -143,6 +144,35 @@ Modules can be excluded with `--exclude`, a repeatable glob written like a `.git
 - id: mps-check-module-naming
   args: [--exclude=_spreferences, --exclude=some.lang/sandbox]
 ```
+
+### `mps-check-model-naming`
+
+Checks that model files (`*.mps` / `.model`) are named consistently with the model's qualified name. What it checks
+depends on where the model lives.
+
+For a model in a **solution's or language's own model root**, the file name must match the model name. Relative to the
+default model root it lives in, a model named `foo.bar.baz.quux` in a module `foo.bar` may be stored as:
+
+```
+foo.bar.baz.quux.mps          the full name
+baz.quux.mps                  the full name with the module name truncated away
+foo/bar/baz/quux.mps          the full name, each segment its own directory
+baz/quux.mps                  truncated, each segment its own directory
+```
+
+and any mix of dot- and directory-separated segments. Truncation drops the **whole** owning module name and nothing
+less, so `bar.baz.quux.mps` (only part of the module name removed) and an unrelated `somethingElse.mps` are both
+reported. A model in the per-root format is a directory of the same name holding a `.model` header, so the rules apply
+to the directory the `.model` sits in. A `@stereotype` (e.g. `@tests`) is part of the name and so of the file name —
+`foo` and `foo@tests` are different models, kept in different files.
+
+For a model in a **language's embedded generator**, only the name is checked: it must be namespaced under the owning
+language (a model of language `foo.bar` must be named `foo.bar…`). This catches a template model left over from another
+language, or one left with a non-unique name like `main@generator`. The file layout of generator models is not checked —
+the `generator/template` folder makes it unpredictable, and the generator's own declared namespace is unreliable (legacy
+`#id` forms), so the language namespace is what a generator model is measured against.
+
+A model that lies outside every declared model root is left to `mps-check-orphan-models`.
 
 ### `mps-check-path-variables` / `mps-fix-path-variables`
 

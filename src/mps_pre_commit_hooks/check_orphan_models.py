@@ -9,13 +9,13 @@
 
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 
 from ._common import (
     MODEL_GLOBS,
     MODULE_GLOBS,
+    default_model_root_dirs,
     git_ls_files,
     nearest_ancestor_in,
     parse_xml,
@@ -24,32 +24,18 @@ from ._common import (
 
 
 def model_roots(root: Path) -> set[Path]:
-    """Directories declared as default model roots across all module files."""
+    """Directories declared as default model roots across all module files.
+
+    `iter` reaches every modelRoot, including those a language's embedded
+    generators declare -- membership is all this check needs, so it does not
+    matter which module owns each root."""
     roots: set[Path] = set()
     for module in git_ls_files(*MODULE_GLOBS):
-        module_dir = module.parent
         descriptor = parse_xml(module)
         if descriptor is None:
             continue
         for model_root in descriptor.iter("modelRoot"):
-            if model_root.get("type") != "default":
-                continue
-            content_path = model_root.get("contentPath", "").replace("${module}", str(module_dir))
-            for source_root in model_root.findall("sourceRoot"):
-                # Two persistence formats: a "location" relative to contentPath,
-                # or an older "path" that spells out the ${module} macro itself.
-                location = source_root.get("location")
-                path = source_root.get("path")
-                if location is not None:
-                    directory = Path(content_path, location)
-                elif path is not None:
-                    directory = Path(path.replace("${module}", str(module_dir)))
-                else:
-                    continue
-                # A path without ${module} is taken relative to the repo root;
-                # an absolute directory keeps itself. normpath collapses '..'
-                # lexically so the entry matches the path git reports for a model.
-                roots.add(Path(os.path.normpath(root / directory)))
+            roots.update(default_model_root_dirs(model_root, module.parent, root))
     return roots
 
 

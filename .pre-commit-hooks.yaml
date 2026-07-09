@@ -76,10 +76,18 @@
   pass_filenames: false
   always_run: true
 
-# A thin wrapper over the check-xml hook from pre-commit/pre-commit-hooks: the
-# same entry point, pre-pointed at MPS's XML files so it needs no configuration.
-# check-xml catches an empty file from a botched save, a truncated file, or one
-# left with Git conflict markers -- none of which MPS can load.
+# A thin wrapper over the check-xml hook from pre-commit/pre-commit-hooks to validate MPS XML files without additional
+# configuration.
+#
+# prek accelerates the built-in check-xml hook but it will NOT accelerate this wrapper because it detects the hook by
+# the repo URL. To get the built-in hook under prek, reference that repo directly with the MPS files pattern:
+#
+#   - repo: https://github.com/pre-commit/pre-commit-hooks
+#     rev: v6.0.0
+#     hooks:
+#       - id: check-xml
+#         files: '(\.(msd|mpl|devkit|mps|mpsr|model)$)|((^|/)\.mps/(modules|libraries)\.xml$)'
+#         types: [file]  # override the default types: [xml], which excludes MPS's extensions
 - id: mps-check-well-formed-xml
   name: Check that MPS XML files are well-formed
   description: >-

@@ -106,6 +106,11 @@ file pattern:
       types: [file] # override the hook's default types: [xml], which excludes MPS's extensions
 ```
 
+Wiring it up this way also lets [prek](https://github.com/j178/prek) substitute its built-in Rust `check-xml`, which it
+does automatically for the `pre-commit/pre-commit-hooks` repo — roughly twice as fast on a large repository. It does
+**not** do this for the wrapper above, whose fast path prek can't recognize. Under pre-commit the same config just runs
+the Python `check-xml`, so the snippet works on both runners.
+
 ### `mps-check-language-versions`
 
 Reports model files (`*.mps` / `.model`) whose `<languages>` header uses a language with `version="-1"`. MPS writes `-1`

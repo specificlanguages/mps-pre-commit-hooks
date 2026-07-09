@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-07-09
+
+### Changed
+
+- `mps-check-language-versions` now also reports a model that uses a language with a version differing from the version
+  the owning module records for that language in its descriptor's `<languageVersions>`, matching the load-time
+  consistency check MPS logs. The hook therefore also runs on module files (`*.msd` / `*.mpl` / `*.devkit` / `*.mpst`):
+  a changed descriptor is expanded to the models it owns, so a version bump is checked against its models even when no
+  model file changed.
+
 ## [0.3.0] - 2026-07-09
 
 ### Added
@@ -55,6 +65,7 @@ Initial release.
 - `mps-check-module-naming`
 - `mps-check-path-variables` / `mps-fix-path-variables`
 
+[0.4.0]: https://github.com/specificlanguages/mps-pre-commit-hooks/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/specificlanguages/mps-pre-commit-hooks/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/specificlanguages/mps-pre-commit-hooks/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/specificlanguages/mps-pre-commit-hooks/releases/tag/v0.1.0

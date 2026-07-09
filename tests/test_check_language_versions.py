@@ -30,6 +30,32 @@ FIND_USAGES_UNVERSIONED = (
 )
 
 
+def solution(name, *language_versions):
+    """A solution descriptor with a default model root at models/ and the given
+    `<language slang=... version=... />` entries under <languageVersions>."""
+    entries = "\n".join(f"    {lv}" for lv in language_versions)
+    return (
+        f'<solution name="{name}" uuid="11111111-1111-1111-1111-111111111111">\n'
+        "  <models>\n"
+        '    <modelRoot contentPath="${module}" type="default">\n'
+        '      <sourceRoot location="models" />\n'
+        "    </modelRoot>\n"
+        "  </models>\n"
+        "  <languageVersions>\n"
+        f"{entries}\n"
+        "  </languageVersions>\n"
+        "</solution>\n"
+    )
+
+
+BASE_LANGUAGE_V12 = (
+    '<language slang="l:f3061a53-9226-4cc5-a443-f952ceaf5816:jetbrains.mps.baseLanguage" version="12" />'
+)
+BASE_LANGUAGE_V11 = (
+    '<language slang="l:f3061a53-9226-4cc5-a443-f952ceaf5816:jetbrains.mps.baseLanguage" version="11" />'
+)
+
+
 def run_check(repo, *args):
     return run_module("check_language_versions", repo, *args)
 
@@ -99,3 +125,67 @@ def test_passed_file_scopes_the_check(repo):
     reported = run_check(repo, "dirty/dirty.mps")
     assert reported.returncode == 1
     assert "dirty/dirty.mps" in reported.stdout
+
+
+def test_model_version_matching_module_passes(repo):
+    write(os.path.join(repo, "solution/foo.bar.msd"), solution("foo.bar", BASE_LANGUAGE_V12))
+    write(os.path.join(repo, "solution/models/example.mps"), model(BASE_LANGUAGE))
+    add(repo)
+    result = run_check(repo)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout == ""
+
+
+def test_model_version_disagreeing_with_module_is_reported(repo):
+    write(os.path.join(repo, "solution/foo.bar.msd"), solution("foo.bar", BASE_LANGUAGE_V11))
+    write(os.path.join(repo, "solution/models/example.mps"), model(BASE_LANGUAGE))
+    add(repo)
+    result = run_check(repo)
+    assert result.returncode == 1
+    assert "solution/models/example.mps" in result.stdout
+    assert "jetbrains.mps.baseLanguage" in result.stdout
+    assert "version 12" in result.stdout
+    assert "foo.bar" in result.stdout
+    assert "version 11" in result.stdout
+
+
+def test_module_without_recorded_version_is_not_compared(repo):
+    # The module records no version for baseLanguage, so there is nothing to
+    # disagree with -- MPS skips the language the same way.
+    write(os.path.join(repo, "solution/foo.bar.msd"), solution("foo.bar"))
+    write(os.path.join(repo, "solution/models/example.mps"), model(BASE_LANGUAGE))
+    add(repo)
+    result = run_check(repo)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout == ""
+
+
+def test_model_outside_any_source_root_is_not_compared(repo):
+    write(os.path.join(repo, "solution/foo.bar.msd"), solution("foo.bar", BASE_LANGUAGE_V11))
+    write(os.path.join(repo, "elsewhere/example.mps"), model(BASE_LANGUAGE))
+    add(repo)
+    result = run_check(repo)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout == ""
+
+
+def test_passing_only_the_module_checks_its_models(repo):
+    # A version bump in the descriptor changes no model file, so pre-commit would
+    # pass only the module; it must still re-check the models the module owns.
+    write(os.path.join(repo, "solution/foo.bar.msd"), solution("foo.bar", BASE_LANGUAGE_V11))
+    write(os.path.join(repo, "solution/models/example.mps"), model(BASE_LANGUAGE))
+    add(repo)
+    result = run_check(repo, "solution/foo.bar.msd")
+    assert result.returncode == 1
+    assert "solution/models/example.mps" in result.stdout
+    assert "version 11" in result.stdout
+
+
+def test_passing_an_unrelated_module_checks_nothing(repo):
+    write(os.path.join(repo, "solution/foo.bar.msd"), solution("foo.bar", BASE_LANGUAGE_V11))
+    write(os.path.join(repo, "solution/models/example.mps"), model(BASE_LANGUAGE))
+    write(os.path.join(repo, "other/other.baz.msd"), solution("other.baz", BASE_LANGUAGE_V12))
+    add(repo)
+    result = run_check(repo, "other/other.baz.msd")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout == ""

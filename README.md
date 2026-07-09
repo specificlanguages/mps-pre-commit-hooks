@@ -113,10 +113,20 @@ the Python `check-xml`, so the snippet works on both runners.
 
 ### `mps-check-language-versions`
 
-Reports model files (`*.mps` / `.model`) whose `<languages>` header uses a language with `version="-1"`. MPS writes `-1`
-when it saves a model while the used language's version is unknown — typically because the language module was not on
-the path at save time. The model still loads, but the missing version is a latent inconsistency that resurfaces as
-spurious diffs or migration problems once the language is available again.
+Reports two problems in a model file's (`*.mps` / `.model`) `<languages>` header:
+
+- A language used with `version="-1"`. MPS writes `-1` when it saves a model while the used language's version is
+  unknown — typically because the language module was not on the path at save time. The model still loads, but the
+  missing version is a latent inconsistency that resurfaces as spurious diffs or migration problems once the language is
+  available again.
+- A language whose version disagrees with the version the owning module records for that language in its descriptor's
+  `<languageVersions>`. MPS reports this at load time ("Migration assistant detected inconsistency in language
+  versions"). It is reported rather than fixed: MPS changes a model's language version only by running the actual
+  migration, which migrates the node content along with the number.
+
+Because the second check reads both sides, the hook also runs on module files (`*.msd` / `*.mpl` / `*.devkit` /
+`*.mpst`): a passed module descriptor is expanded to the models it owns, so a version bump in a descriptor is checked
+against its models even when no model file changed in the commit.
 
 ### `mps-check-no-test-info`
 

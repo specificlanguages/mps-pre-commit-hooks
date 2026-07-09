@@ -100,15 +100,16 @@
   files: '(\.(msd|mpl|devkit|mps|mpsr|model)$)|((^|/)\.mps/(modules|libraries)\.xml$)'
 
 - id: mps-check-language-versions
-  name: Check for MPS languages used with version -1
+  name: Check MPS model language versions
   description: >-
-    Report MPS model files (*.mps / .model) whose <languages> header uses a language with version="-1", which MPS writes
-    when the used language's version was unknown at save time.
+    Report MPS model files (*.mps / .model) whose <languages> header uses a language with version="-1" (which MPS writes
+    when the used language's version was unknown at save time), or with a version that disagrees with the version the
+    owning module records for that language in its descriptor's <languageVersions>.
   entry: python -m mps_pre_commit_hooks.check_language_versions
   language: python
   language_version: python3.13
   pass_filenames: true
-  files: '\.(mps|model)$'
+  files: '\.(mps|model|msd|mpl|devkit|mpst)$'
 
 - id: mps-check-no-test-info
   name: Check for banned MPS TestInfo nodes

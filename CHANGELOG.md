@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Repeatable `--exclude` support for `mps-check-missing-modules` and `mps-fix-missing-modules`, allowing expected
   missing module targets to be ignored in selected `.mps/modules.xml` files.
+- `mps-check-module-naming` flags `--allow-nested-runtime` and `--allow-nested-sandbox`, allowing the corresponding
+  nested runtime/sandbox directory layout under a language module directory when it contains a `.mpl` descriptor.
 
 ## [0.4.0] - 2026-07-09
 

@@ -159,6 +159,15 @@ Checks that every module descriptor (`*.msd` / `*.mpl` / `*.devkit` / `*.mpst`) 
 directory and the file must be named after the full module name: `com.example.foo` must be located in
 `com.example.foo/com.example.foo.mpl` (likewise for other module types).
 
+For language modules, nested runtime and sandbox modules can optionally use the layout
+`foo.bar/runtime/foo.bar.runtime.msd` and `foo.bar/sandbox/foo.bar.sandbox.msd` for the module names `foo.bar.runtime`
+and `foo.bar.sandbox`. Enable these exceptions explicitly; the language directory must contain a `.mpl` descriptor:
+
+```yaml
+- id: mps-check-module-naming
+  args: [--allow-nested-runtime, --allow-nested-sandbox]
+```
+
 Modules can be excluded with `--exclude`, a repeatable glob written like a `.gitignore` pattern:
 
 ```yaml

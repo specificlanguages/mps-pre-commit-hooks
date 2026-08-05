@@ -58,17 +58,64 @@ def test_directory_name_mismatch_is_reported(repo):
 
 
 def test_nested_role_submodule_folder_is_reported(repo):
-    # We used to allow sandbox or runtime solutions inside "sandbox" folder under a language, but not anymore.
+    # Nested role modules require an explicit opt-in, even when their parent is
+    # a language module.
     write(
-        os.path.join(repo, "com.example.foo/com.example.foo.msd"),
-        solution("com.example.foo"),
+        os.path.join(repo, "foo.bar/foo.bar.mpl"),
+        solution("foo.bar"),
     )
     write(
-        os.path.join(repo, "com.example.foo/sandbox/com.example.foo.sandbox.msd"),
-        solution("com.example.foo.sandbox"),
+        os.path.join(repo, "foo.bar/sandbox/foo.bar.sandbox.msd"),
+        solution("foo.bar.sandbox"),
     )
     add(repo)
     result = run_check(repo)
+    assert result.returncode == 1
+    assert "should be in directory" in result.stdout
+
+
+@pytest.mark.parametrize(
+    ("role", "flag"),
+    [("runtime", "--allow-nested-runtime"), ("sandbox", "--allow-nested-sandbox")],
+)
+def test_nested_role_is_allowed_for_language_module(repo, role, flag):
+    write(os.path.join(repo, "foo.bar/foo.bar.mpl"), solution("foo.bar"))
+    write(
+        os.path.join(repo, f"foo.bar/{role}/foo.bar.{role}.msd"),
+        solution(f"foo.bar.{role}"),
+    )
+    add(repo)
+
+    result = run_check(repo, flag)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout == ""
+
+
+@pytest.mark.parametrize("role", ["runtime", "sandbox"])
+def test_nested_role_requires_language_descriptor(repo, role):
+    write(
+        os.path.join(repo, f"foo.bar/{role}/foo.bar.{role}.msd"),
+        solution(f"foo.bar.{role}"),
+    )
+    add(repo)
+
+    result = run_check(repo, f"--allow-nested-{role}")
+
+    assert result.returncode == 1
+    assert "should be in directory" in result.stdout
+
+
+def test_nested_role_exception_only_applies_to_msd(repo):
+    write(os.path.join(repo, "foo.bar/foo.bar.mpl"), solution("foo.bar"))
+    write(
+        os.path.join(repo, "foo.bar/runtime/foo.bar.runtime.mpl"),
+        solution("foo.bar.runtime"),
+    )
+    add(repo)
+
+    result = run_check(repo, "--allow-nested-runtime")
+
     assert result.returncode == 1
     assert "should be in directory" in result.stdout
 

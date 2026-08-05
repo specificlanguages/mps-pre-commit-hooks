@@ -137,8 +137,9 @@
 - id: mps-check-module-naming
   name: Check MPS module naming consistency
   description: >-
-    Report MPS module descriptors (*.msd / *.mpl / *.devkit) whose name disagrees with the descriptor file name or its
-    containing directory.
+    Report MPS module descriptors (*.msd / *.mpl / *.devkit / *.mpst) whose name disagrees with the descriptor file name
+    or its containing directory. Allow language runtime/sandbox modules in the parent language directory with
+    [--allow-nested-runtime] and [--allow-nested-sandbox].
   entry: python -m mps_pre_commit_hooks.check_module_naming
   language: python
   language_version: python3.13

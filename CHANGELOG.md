@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Repeatable `--exclude` support for `mps-check-missing-modules` and `mps-fix-missing-modules`, allowing expected
+  missing module targets to be ignored in selected `.mps/modules.xml` files.
+
 ## [0.4.0] - 2026-07-09
 
 ### Changed

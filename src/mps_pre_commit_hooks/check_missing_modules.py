@@ -19,7 +19,7 @@ import re
 import sys
 from pathlib import Path
 
-from ._common import MODULES_XML_GLOBS, git_ls_files, parse_xml, repo_root
+from ._common import MODULES_XML_GLOBS, FloatingGlob, anchor, git_ls_files, matches, parse_xml, repo_root
 
 # A <modulePath> element with its path attribute captured. Used to drop the
 # matching line on --fix; MPS writes one entry per line.
@@ -76,15 +76,29 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         action="store_true",
         help="Remove each dangling <modulePath> entry from its modules.xml.",
     )
+    parser.add_argument(
+        "--exclude",
+        action="append",
+        default=[],
+        metavar="GLOB",
+        type=FloatingGlob,
+        help="Glob matching .mps/modules.xml paths (repo-relative) whose missing module "
+        "targets are expected and should be skipped, written "
+        "like a .gitignore pattern ('*' stays within a path segment, '**' spans "
+        "directories). Repeatable. E.g. --exclude='tutorial/'.",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv if argv is not None else sys.argv[1:])
     root = repo_root()
+    excludes = [anchor(g) for g in args.exclude]
 
     failed = False
     for modules_xml in git_ls_files(*MODULES_XML_GLOBS):
+        if matches(modules_xml.relative_to(root).as_posix(), *excludes, subtree=True):
+            continue
         dangling = dangling_paths(modules_xml)
         if not dangling:
             continue

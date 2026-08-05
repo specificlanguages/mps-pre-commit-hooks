@@ -130,3 +130,30 @@ def test_root_level_modules_xml_dangling_is_reported(tmp_path):
     result = run_check(root)
     assert result.returncode == 1
     assert "missing file" in result.stdout
+
+
+def test_excluded_modules_xml_is_not_checked(repo):
+    dangling = MODULES_XML.replace("com.example.foo.msd", "com.example.gone.msd")
+    write(proj_path(repo, ".mps/modules.xml"), dangling)
+    write(os.path.join(repo, "sandbox/.mps/modules.xml"), dangling)
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
+
+    result = run_check(repo, "--exclude", "sandbox/.mps/modules.xml")
+
+    assert result.returncode == 1
+    assert "proj/.mps/modules.xml" in result.stdout
+    assert "sandbox/.mps/modules.xml" not in result.stdout
+
+
+def test_fix_does_not_modify_excluded_modules_xml(repo):
+    dangling = MODULES_XML.replace("com.example.foo.msd", "com.example.gone.msd")
+    excluded = os.path.join(repo, "sandbox/.mps/modules.xml")
+    write(proj_path(repo, ".mps/modules.xml"), dangling)
+    write(excluded, dangling)
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
+
+    result = run_check(repo, "--fix", "--exclude", "sandbox/")
+
+    assert result.returncode == 1
+    assert "com.example.gone.msd" not in read(proj_path(repo, ".mps/modules.xml"))
+    assert "com.example.gone.msd" in read(excluded)

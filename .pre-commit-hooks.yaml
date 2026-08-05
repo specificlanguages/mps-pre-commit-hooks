@@ -38,7 +38,7 @@
   name: Check for missing MPS modules
   description: >-
     Report .mps/modules.xml entries whose modulePath does not exist on disk. Read-only; use mps-fix-missing-modules to
-    remove them.
+    remove them. Exclude projects whose missing module targets are expected with args: [--exclude=GLOB].
   entry: python -m mps_pre_commit_hooks.check_missing_modules
   language: python
   language_version: python3.13
@@ -48,7 +48,8 @@
 - id: mps-fix-missing-modules
   name: Fix missing MPS modules
   description: >-
-    Remove .mps/modules.xml entries whose modulePath does not exist on disk. Modifies files; review the result.
+    Remove .mps/modules.xml entries whose modulePath does not exist on disk. Modifies files; review the result. Exclude
+    projects whose missing module targets are expected with args: [--exclude=GLOB].
   entry: python -m mps_pre_commit_hooks.check_missing_modules --fix
   language: python
   language_version: python3.13

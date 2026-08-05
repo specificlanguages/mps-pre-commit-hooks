@@ -69,7 +69,13 @@ variable are ignored.
 
 ```yaml
 - id: mps-fix-missing-modules
+  args: [--exclude=examples/]
 ```
+
+Both hooks accept repeatable `--exclude` options. Each is a `.gitignore`-style glob matched against the
+repository-relative `.mps/modules.xml` path. Use it when a project contains `modulePath` entries for modules that are
+not present on disk but should be ignored; MPS silently ignores those entries when loading the project. A trailing `/`
+excludes a whole subtree; for example, `--exclude=examples/` skips every `modules.xml` below `examples`.
 
 These are defined as separate hooks because the `check` hook may run in parallel with other read-only hooks whereas the
 `fix` hook requires serial execution (`require_serial: true`).

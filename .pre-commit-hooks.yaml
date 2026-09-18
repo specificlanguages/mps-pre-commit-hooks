@@ -67,6 +67,17 @@
   pass_filenames: false
   always_run: true
 
+- id: mps-check-empty-model-roots
+  name: Check for empty MPS model roots
+  description: >-
+    Report default model roots that contain no tracked MPS model files (*.mps / *.mpsr / .model) in any of their
+    declared source roots. Exclude module descriptors whose empty roots are expected with args: [--exclude=GLOB].
+  entry: python -m mps_pre_commit_hooks.check_empty_model_roots
+  language: python
+  language_version: python3.13
+  pass_filenames: false
+  always_run: true
+
 - id: mps-check-orphan-mpsr-files
   name: Check for orphan .mpsr files
   description: >-

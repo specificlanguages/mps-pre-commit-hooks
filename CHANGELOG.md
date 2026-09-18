@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `mps-check-empty-model-roots` — reports default model roots that contain no tracked model files under any of their
+  source roots, with repeatable `--exclude` globs for module descriptors whose empty roots are expected.
 - Repeatable `--exclude` support for `mps-check-missing-modules` and `mps-fix-missing-modules`, allowing expected
   missing module targets to be ignored in selected `.mps/modules.xml` files.
 - `mps-check-module-naming` flags `--allow-nested-runtime` and `--allow-nested-sandbox`, allowing the corresponding

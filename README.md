@@ -21,6 +21,7 @@ repos:
       - id: mps-check-unbuilt-modules
       - id: mps-check-missing-modules
       - id: mps-check-orphan-models
+      - id: mps-check-empty-model-roots
       - id: mps-check-orphan-mpsr-files
       - id: mps-check-well-formed-xml
       - id: mps-check-language-versions
@@ -85,6 +86,20 @@ These are defined as separate hooks because the `check` hook may run in parallel
 Reports model files (`*.mps` / `*.mpsr` / `.model`) living outside every source root of every declared default model
 root. A model that falls under none of them is invisible to MPS. Such models may appear in the repository during merge
 conflict resolution.
+
+### `mps-check-empty-model-roots`
+
+Reports each declared default model root that contains no tracked model files (`*.mps` / `*.mpsr` / `.model`) under any
+of its source roots. A model root with several source roots is considered nonempty when at least one contains a model.
+This catches obsolete model-root declarations left behind after models are moved or deleted.
+
+The hook supports the repeatable `--exclude` option. It accepts `.gitignore`-style globs matched against
+repository-relative module descriptor paths:
+
+```yaml
+- id: mps-check-empty-model-roots
+  args: [--exclude=_spreferences/, --exclude=*.sandbox.msd]
+```
 
 ### `mps-check-orphan-mpsr-files`
 

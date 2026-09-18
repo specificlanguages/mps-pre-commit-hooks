@@ -7,7 +7,6 @@ import os
 import subprocess
 
 import pytest
-
 from support import run_module, write
 
 TEST_LANGUAGE_ID = "8585453e-6bfb-4d80-98de-b16074f1d86c"

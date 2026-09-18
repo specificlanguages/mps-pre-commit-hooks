@@ -18,6 +18,7 @@ def run_module(module, repo, *args):
         [sys.executable, "-m", f"mps_pre_commit_hooks.{module}", *args],
         cwd=repo,
         capture_output=True,
+        check=False,
         text=True,
         env=env,
     )

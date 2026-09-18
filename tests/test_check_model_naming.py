@@ -7,7 +7,6 @@ import os
 import subprocess
 
 import pytest
-
 from support import run_module, write
 
 # A solution `foo.bar` with a default model root at models/.

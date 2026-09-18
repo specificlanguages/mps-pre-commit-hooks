@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #
 # Build-membership check.
 #
@@ -24,8 +23,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path, PurePath, PurePosixPath
 
 from ._common import (
-    FloatingGlob,
     MODULE_GLOBS,
+    FloatingGlob,
     anchor,
     git_ls_files,
     matches,
@@ -52,6 +51,7 @@ def build_models(root: Path) -> list[Path]:
     found = subprocess.run(
         ["git", "grep", "-l", BUILD_LANGUAGE, "--", "*.mps"],
         capture_output=True,
+        check=False,
         text=True,
         cwd=root,
     ).stdout

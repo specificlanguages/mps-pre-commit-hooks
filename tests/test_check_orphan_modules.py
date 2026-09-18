@@ -9,7 +9,6 @@ import os
 import subprocess
 
 import pytest
-
 from support import run_module, write
 
 SOLUTION_MSD = '<solution name="com.example.foo" uuid="11111111-1111-1111-1111-111111111111" />\n'

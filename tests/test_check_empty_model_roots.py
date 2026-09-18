@@ -6,7 +6,6 @@ import sys
 from pathlib import Path
 
 import pytest
-
 from support import SRC, run_module, write
 
 if SRC not in sys.path:

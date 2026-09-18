@@ -8,7 +8,6 @@ import os
 import subprocess
 
 import pytest
-
 from support import read, run_module, write
 
 # The .mps lives two levels below the repo root, so $PROJECT_DIR$ resolves to

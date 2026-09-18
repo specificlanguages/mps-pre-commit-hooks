@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #
 # Helpers shared by the MPS check hooks: locating the repository, listing tracked
 # files, reading a module's name, and walking a path's ancestors. Each hook runs
@@ -11,9 +10,9 @@ import os
 import re
 import subprocess
 import xml.etree.ElementTree as ET
-from collections.abc import Iterator
+from collections.abc import Container, Iterator
 from pathlib import Path, PurePath, PurePosixPath
-from typing import Container, NewType
+from typing import NewType
 
 # A root-anchored, pathname-aware glob, in the dialect PurePath.full_match reads:
 # `*` stays within a single path segment and `**` spans segments, so a leading
@@ -38,7 +37,7 @@ def anchor(glob: FloatingGlob) -> AnchoredGlob:
     `**/` prefix lets it match at any depth. Either way a trailing `/` names a
     directory, so a `**` suffix is added to match everything beneath it."""
     anchored = "/" in glob.rstrip("/")
-    core = glob[1:] if glob.startswith("/") else glob
+    core = glob.removeprefix("/")
     if not anchored:
         core = "**/" + core
     if glob.endswith("/"):

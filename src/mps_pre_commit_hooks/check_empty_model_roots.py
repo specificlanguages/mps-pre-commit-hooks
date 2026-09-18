@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Report default model roots that contain no tracked models."""
 
 from __future__ import annotations

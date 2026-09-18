@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #
 # Path-variable check for MPS .mps/libraries.xml and .mps/modules.xml.
 #

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "groupName": "all dependencies"
+  },
+  "pre-commit": {
+    "enabled": true
+  },
+  "pyenv": {
+    "enabled": false
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.python-version$/", "/^\\.pre-commit-hooks\\.yaml$/"],
+      "matchStrings": ["^(?<currentValue>\\d+\\.\\d+)\\s*$", "python(?<currentValue>\\d+\\.\\d+)"],
+      "datasourceTemplate": "python-version",
+      "depNameTemplate": "python",
+      "versioningTemplate": "python"
+    }
+  ],
+  "packageRules": [
+    {
+      "groupName": "all dependencies",
+      "matchPackageNames": ["*"],
+      "separateMajorMinor": false
+    }
+  ]
+}

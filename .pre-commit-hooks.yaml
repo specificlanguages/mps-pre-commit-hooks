@@ -9,7 +9,7 @@
 # pre-commit passes them, falling back to the whole repo when run standalone or
 # with `--all-files`. Only the fixers set require_serial.
 #
-# Every hook pins language_version: python3.14 -- the checks match paths with
+# Every hook pins language_version: python3.15 -- the checks match paths with
 # PurePath.full_match, added in 3.13 (see pyproject.toml requires-python).
 
 - id: mps-check-orphan-modules
@@ -19,7 +19,7 @@
     module descriptors that are known to be unregistered with args: [--exclude=GLOB].
   entry: python -m mps_pre_commit_hooks.check_orphan_modules
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: false
   always_run: true
 
@@ -31,7 +31,7 @@
     [--exclude=GLOB].
   entry: python -m mps_pre_commit_hooks.check_unbuilt_modules
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: false
   always_run: true
 
@@ -42,7 +42,7 @@
     remove them. Exclude projects whose missing module targets are expected with args: [--exclude=GLOB].
   entry: python -m mps_pre_commit_hooks.check_missing_modules
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: false
   always_run: true
 
@@ -53,7 +53,7 @@
     projects whose missing module targets are expected with args: [--exclude=GLOB].
   entry: python -m mps_pre_commit_hooks.check_missing_modules --fix
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: false
   require_serial: true
   always_run: true
@@ -65,7 +65,7 @@
     model files that are known to be orphans with args: [--exclude=GLOB].
   entry: python -m mps_pre_commit_hooks.check_orphan_models
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: false
   always_run: true
 
@@ -76,7 +76,7 @@
     declared source roots. Exclude module descriptors whose empty roots are expected with args: [--exclude=GLOB].
   entry: python -m mps_pre_commit_hooks.check_empty_model_roots
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: false
   always_run: true
 
@@ -86,7 +86,7 @@
     Report *.mpsr files whose directory has no .model header file, without which MPS cannot load them.
   entry: python -m mps_pre_commit_hooks.check_orphan_mpsr_files
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: false
   always_run: true
 
@@ -109,7 +109,7 @@
     descriptors (*.msd / *.mpl / *.devkit), and .mps/modules.xml / .mps/libraries.xml.
   entry: check-xml
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: true
   files: '(\.(msd|mpl|devkit|mps|mpsr|model)$)|((^|/)\.mps/(modules|libraries)\.xml$)'
 
@@ -121,7 +121,7 @@
     owning module records for that language in its descriptor's <languageVersions>.
   entry: python -m mps_pre_commit_hooks.check_language_versions
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: true
   files: '\.(mps|model|msd|mpl|devkit|mpst)$'
 
@@ -132,7 +132,7 @@
     matched by language and concept id, not name.
   entry: python -m mps_pre_commit_hooks.check_test_info
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: true
   files: '\.(mps|mpsr)$'
 
@@ -143,7 +143,7 @@
     exact, e.g. --ban=main@generator catches a generator model left with MPS' default unqualified name.
   entry: python -m mps_pre_commit_hooks.check_banned_model_names
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: true
   files: '\.(mps|model)$'
 
@@ -155,7 +155,7 @@
     [--allow-nested-runtime] and [--allow-nested-sandbox].
   entry: python -m mps_pre_commit_hooks.check_module_naming
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: true
   files: '\.(msd|mpl|devkit)$'
 
@@ -168,7 +168,7 @@
     [--no-short-names] (language models keep the short form).
   entry: python -m mps_pre_commit_hooks.check_model_naming
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: true
   files: '\.(mps|model)$'
 
@@ -179,7 +179,7 @@
     Read-only; use mps-fix-path-variables to rewrite them.
   entry: python -m mps_pre_commit_hooks.check_path_variables
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: true
   files: '(^|/)\.mps/(modules|libraries)\.xml$'
 
@@ -190,7 +190,7 @@
     resolves to the repository root. Modifies files; review the result (see the README caveat).
   entry: python -m mps_pre_commit_hooks.check_path_variables --fix
   language: python
-  language_version: python3.14
+  language_version: python3.15
   pass_filenames: true
   require_serial: true
   files: '(^|/)\.mps/(modules|libraries)\.xml$'

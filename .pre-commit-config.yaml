@@ -1,4 +1,7 @@
 # Hooks run against this repository itself.
+# Run hooks only on commit. Otherwise a commit-msg hook installed for prek runs hooks without a `stages` setting, such as
+# prettier, on the commit message file.
+default_stages: [pre-commit]
 repos:
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: 5c9b20b95f2bc1c4d3d929b83a96d5c96a29e752 # frozen: v3.9.8

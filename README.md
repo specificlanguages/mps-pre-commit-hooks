@@ -48,6 +48,16 @@ Reports **orphan modules** — `*.msd` / `*.mpl` / `*.devkit` / `*.mpst` files p
 `.mps/modules.xml`. MPS opens a project from its `modules.xml`, so it silently ignores an unregistered module, and the
 mistake otherwise surfaces only much later.
 
+The hook supports the repeatable `--exclude` option. It accepts `.gitignore`-style globs matched against
+repository-relative module descriptor paths. A trailing `/` excludes a whole subtree. Use it to skip modules that are
+already unregistered, so that only new orphans are reported:
+
+```yaml
+- id: mps-check-orphan-modules
+  args:
+    - --exclude=code/extensions/languages/de.itemis.model.merge.test/
+```
+
 ### `mps-check-unbuilt-modules`
 
 Reports **unbuilt modules** — modules that are not mentioned in any MPS build script.
@@ -86,6 +96,16 @@ These are defined as separate hooks because the `check` hook may run in parallel
 Reports model files (`*.mps` / `*.mpsr` / `.model`) living outside every source root of every declared default model
 root. A model that falls under none of them is invisible to MPS. Such models may appear in the repository during merge
 conflict resolution.
+
+The hook supports the repeatable `--exclude` option. It accepts `.gitignore`-style globs matched against
+repository-relative model file paths. A trailing `/` excludes a whole subtree. Use it to skip model files that are
+already orphans, so that only new orphans are reported:
+
+```yaml
+- id: mps-check-orphan-models
+  args:
+    - --exclude=code/extensions/celllayout/languages/de.itemis.mps.celllayout/generator/template/main@generator.mps
+```
 
 ### `mps-check-empty-model-roots`
 

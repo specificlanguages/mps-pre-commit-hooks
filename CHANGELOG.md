@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-10-23
+
+The `v0.6.0` tag was created without the version bump and changelog update, so it should not be used. This release
+contains the changes intended for 0.6.0.
+
 ### Added
 
 - Repeatable `--exclude` support for `mps-check-orphan-modules` and `mps-check-orphan-models`. Each is a
@@ -84,7 +89,8 @@ Initial release.
 - `mps-check-module-naming`
 - `mps-check-path-variables` / `mps-fix-path-variables`
 
-[Unreleased]: https://github.com/specificlanguages/mps-pre-commit-hooks/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/specificlanguages/mps-pre-commit-hooks/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/specificlanguages/mps-pre-commit-hooks/compare/v0.5.0...v0.6.1
 [0.5.0]: https://github.com/specificlanguages/mps-pre-commit-hooks/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/specificlanguages/mps-pre-commit-hooks/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/specificlanguages/mps-pre-commit-hooks/compare/v0.2.0...v0.3.0

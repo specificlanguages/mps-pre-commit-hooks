@@ -15,7 +15,8 @@
 - id: mps-check-orphan-modules
   name: Check for orphan MPS modules
   description: >-
-    Report MPS modules (*.msd / *.mpl / *.devkit) present on disk but not registered in any .mps/modules.xml.
+    Report MPS modules (*.msd / *.mpl / *.devkit) present on disk but not registered in any .mps/modules.xml. Exclude
+    module descriptors that are known to be unregistered with args: [--exclude=GLOB].
   entry: python -m mps_pre_commit_hooks.check_orphan_modules
   language: python
   language_version: python3.14
@@ -60,7 +61,8 @@
 - id: mps-check-orphan-models
   name: Check for orphan MPS models
   description: >-
-    Report MPS model files (*.mps / *.mpsr / .model) that live outside any module's declared default model root.
+    Report MPS model files (*.mps / *.mpsr / .model) that live outside any module's declared default model root. Exclude
+    model files that are known to be orphans with args: [--exclude=GLOB].
   entry: python -m mps_pre_commit_hooks.check_orphan_models
   language: python
   language_version: python3.14

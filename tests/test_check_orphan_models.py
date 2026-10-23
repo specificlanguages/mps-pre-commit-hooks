@@ -54,3 +54,29 @@ def test_model_outside_root_is_reported(repo):
     assert result.returncode == 1
     assert "outside any default model root's source roots" in result.stdout
     assert "stray.mps" in result.stdout
+
+
+def test_excluded_model_is_not_reported(repo):
+    write(os.path.join(repo, "com.example.foo/stray.mps"), MODEL_MPS)
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
+    result = run_check(repo, "--exclude=com.example.foo/stray.mps")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout == ""
+
+
+def test_excluded_subtree_is_not_reported(repo):
+    write(os.path.join(repo, "com.example.foo/generator/template/main@generator.mps"), MODEL_MPS)
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
+    result = run_check(repo, "--exclude", "generator/")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout == ""
+
+
+def test_exclude_only_skips_matching_models(repo):
+    write(os.path.join(repo, "com.example.foo/stray.mps"), MODEL_MPS)
+    write(os.path.join(repo, "com.example.foo/other.mps"), MODEL_MPS)
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
+    result = run_check(repo, "--exclude=stray.mps")
+    assert result.returncode == 1
+    assert "stray.mps" not in result.stdout
+    assert "other.mps" in result.stdout

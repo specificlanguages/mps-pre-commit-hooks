@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Repeatable `--exclude` support for `mps-check-orphan-modules` and `mps-check-orphan-models`. Each is a
+  `.gitignore`-style glob matched against the repository-relative path of the module descriptor or model file, so a
+  project with existing orphans can enable these hooks and still catch new ones.
+
 ## [0.5.0] - 2026-09-18
 
 ### Added

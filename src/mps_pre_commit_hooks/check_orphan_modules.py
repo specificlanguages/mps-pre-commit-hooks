@@ -12,9 +12,12 @@
 # outside a model root, mps-check-orphan-models; *.mpsr without a .model header,
 # mps-check-orphan-roots; malformed XML files, mps-check-well-formed-xml; module
 # naming, mps-check-module-naming; path variables, mps-check-path-variables.
+#
+# Modules that are known to be unregistered can be skipped with --exclude.
 
 from __future__ import annotations
 
+import argparse
 import os
 import sys
 from pathlib import Path
@@ -22,7 +25,10 @@ from pathlib import Path
 from ._common import (
     MODULE_GLOBS,
     MODULES_XML_GLOBS,
+    FloatingGlob,
+    anchor,
     git_ls_files,
+    matches,
     module_name,
     parse_xml,
     repo_root,
@@ -53,14 +59,38 @@ def referenced_modules() -> set[Path]:
     return referenced
 
 
-def main() -> int:
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="mps-check-orphan-modules",
+        description="Check that every MPS module is registered in a .mps/modules.xml.",
+    )
+    parser.add_argument(
+        "--exclude",
+        action="append",
+        default=[],
+        metavar="GLOB",
+        type=FloatingGlob,
+        help="Glob matching module descriptor paths (repo-relative) that are not "
+        "checked. Written like a .gitignore pattern ('*' stays within a path "
+        "segment, '**' spans directories, a trailing '/' excludes a subtree). "
+        "Repeatable. E.g. --exclude='code/some.lang/' --exclude='*.sandbox.msd'.",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv if argv is not None else sys.argv[1:])
+
     root = repo_root()
 
     referenced = referenced_modules()
+    excludes = [anchor(g) for g in args.exclude]
 
     failed = False
     for module in git_ls_files(*MODULE_GLOBS):
         if module in referenced:
+            continue
+        if matches(module.relative_to(root).as_posix(), *excludes, subtree=True):
             continue
         descriptor = parse_xml(module)
         if descriptor is None:

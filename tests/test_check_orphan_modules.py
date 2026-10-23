@@ -92,3 +92,35 @@ def test_root_level_project_is_scanned(tmp_path):
     reported = run_check(root)
     assert reported.returncode == 1
     assert "not registered in any modules.xml" in reported.stdout
+
+
+def unregister(repo):
+    write(
+        proj_path(repo, ".mps/modules.xml"),
+        MODULES_XML.replace(
+            '<modulePath path="$PROJECT_DIR$/com.example.foo/com.example.foo.msd" folder="" />',
+            "",
+        ),
+    )
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
+
+
+def test_excluded_descriptor_is_not_reported(consistent_repo):
+    unregister(consistent_repo)
+    result = run_check(consistent_repo, "--exclude", "proj/com.example.foo/com.example.foo.msd")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout == ""
+
+
+def test_excluded_subtree_is_not_reported(consistent_repo):
+    unregister(consistent_repo)
+    result = run_check(consistent_repo, "--exclude=com.example.foo/")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout == ""
+
+
+def test_non_matching_exclude_still_reports(consistent_repo):
+    unregister(consistent_repo)
+    result = run_check(consistent_repo, "--exclude=com.example.bar/", "--exclude=*.mpl")
+    assert result.returncode == 1
+    assert "com.example.foo.msd" in result.stdout

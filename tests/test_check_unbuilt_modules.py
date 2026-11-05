@@ -16,8 +16,9 @@ def solution(name):
 
 
 # A minimal build model written in jetbrains.mps.build.mps. Its <registry>
-# declares the BuildMps_Solution concept and INamedConcept.name so the check can
-# resolve their indices; the single node packages the module named below.
+# declares the BuildMps_Solution and BuildMps_Generator concepts and
+# INamedConcept.name so the check can resolve their indices; the nodes passed in
+# package modules.
 def build_model(packaged):
     return f"""\
 <model ref="r:00000000-0000-0000-0000-000000000002(build)">
@@ -25,6 +26,7 @@ def build_model(packaged):
   <registry>
     <language id="l1" name="jetbrains.mps.build.mps">
       <concept id="1" index="bm" name="jetbrains.mps.build.mps.structure.BuildMps_Solution" />
+      <concept id="4" index="bg" name="jetbrains.mps.build.mps.structure.BuildMps_Generator" />
     </language>
     <language id="l2" name="jetbrains.mps.lang.core">
       <concept id="2" index="in" name="jetbrains.mps.lang.core.structure.INamedConcept">
@@ -37,8 +39,8 @@ def build_model(packaged):
 """
 
 
-def packaged_node(name):
-    return f'  <node concept="bm">\n    <property role="nm" value="{name}" />\n  </node>'
+def packaged_node(name, concept="bm"):
+    return f'  <node concept="{concept}">\n    <property role="nm" value="{name}" />\n  </node>'
 
 
 def run_check(repo, *args):
@@ -81,6 +83,23 @@ def test_unpackaged_module_is_reported(repo):
     assert result.returncode == 1
     assert "not packaged by any build script" in result.stdout
     assert "com.example.foo" in result.stdout
+
+
+def test_packaged_standalone_generator_passes(repo):
+    # A standalone generator (.mpst) carries its name in "namespace" and is
+    # packaged by a BuildMps_Generator node.
+    write(
+        os.path.join(repo, "com.example.gen/com.example.gen.mpst"),
+        '<generator namespace="com.example.gen" uuid="22222222-2222-2222-2222-222222222222" />\n',
+    )
+    write(
+        os.path.join(repo, "build/models/build.mps"),
+        build_model(packaged_node("com.example.foo") + "\n" + packaged_node("com.example.gen", concept="bg")),
+    )
+    add(repo)
+    result = run_check(repo)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout == ""
 
 
 def test_excluded_glob_is_skipped(repo):

@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- `mps-check-unbuilt-modules` no longer reports standalone generators (`*.mpst`) that a build script packages.
+
 ## [0.6.1] - 2026-10-23
 
 The `v0.6.0` tag was created without the version bump and changelog update, so it should not be used. This release

@@ -1,7 +1,7 @@
 #
 # Build-membership check.
 #
-# Reports modules (*.msd / *.mpl / *.devkit) that ought to be packaged by a
+# Reports modules (*.msd / *.mpl / *.devkit / *.mpst) that ought to be packaged by a
 # jetbrains.mps.build.mps build script but are not -- a module left out of the
 # build ships nothing, so the omission is easy to miss until something downstream
 # is empty.
@@ -43,6 +43,7 @@ BUILT_MODULE_CONCEPTS = (
     "jetbrains.mps.build.mps.structure.BuildMps_Solution",
     "jetbrains.mps.build.mps.structure.BuildMps_Language",
     "jetbrains.mps.build.mps.structure.BuildMps_DevKit",
+    "jetbrains.mps.build.mps.structure.BuildMps_Generator",
 )
 
 

@@ -26,8 +26,8 @@
 - id: mps-check-unbuilt-modules
   name: Check for unbuilt MPS modules
   description: >-
-    Report MPS modules (*.msd / *.mpl / *.devkit) that ought to be packaged by a jetbrains.mps.build.mps build script
-    but are not. A no-op for projects without build scripts. Exempt modules that are never packaged with args:
+    Report MPS modules (*.msd / *.mpl / *.devkit / *.mpst) that ought to be packaged by a jetbrains.mps.build.mps build
+    script but are not. A no-op for projects without build scripts. Exempt modules that are never packaged with args:
     [--exclude=GLOB].
   entry: python -m mps_pre_commit_hooks.check_unbuilt_modules
   language: python
